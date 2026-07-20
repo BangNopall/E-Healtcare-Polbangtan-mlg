@@ -1,0 +1,34 @@
+{
+    "id": "01hprbp2rdybx6vj13verp7523",
+    "obat_id": "9b590910-4d29-4e16-b3da-9d9641641781",
+    "type": "created",
+    "Qty": 0,
+    "production_date": null,
+    "expired_date": null,
+    "description": "Created By Seeder",
+    "user_id": 9,
+    "obat": {
+        "id": "9b590910-4d29-4e16-b3da-9d9641641781",
+        "nama_obat": "Paracetamol",
+        "kode_obat": "PP001",
+        "stok": 0,
+        "satuan_id": 3,
+        "createdBy": 9,
+        "satuan_obat": {
+            "id": 3,
+            "nama_satuan": "Kapsul"
+        },
+        "user": {
+            "id": 9,
+            "name": "Ms. Emely Ryan",
+            "email": "florine08@example.org",
+            "role": "Dokter"
+        }
+    },
+    "user": {
+        "id": 9,
+        "name": "Ms. Emely Ryan",
+        "email": "florine08@example.org",
+        "role": "Dokter"
+    }
+}
