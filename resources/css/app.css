@@ -1,3 +1,7 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+/* Mengakomodasi plugin @tailwindcss/forms jika digunakan */
+@plugin "@tailwindcss/forms";
+
+@source "../views";
+@source "../../app";
