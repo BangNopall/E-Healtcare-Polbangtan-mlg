@@ -1,26 +1,25 @@
 <?php
 
+use App\Http\Controllers\Auth\SsoLoginController;
+use App\Http\Controllers\BimbinganKonselingController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\InventarisAlatController;
+use App\Http\Controllers\InventarisConsumableController;
+use App\Http\Controllers\InventarisObatController;
+use App\Http\Controllers\KaryawanManagementController;
+use App\Http\Controllers\KesehatanController;
+use App\Http\Controllers\MahasiswaManagementController;
+use App\Http\Controllers\PetugasManagementController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\QrController;
+use App\Http\Controllers\RekamMedisController;
+use App\Http\Controllers\SuratManagementController;
+use App\Http\Controllers\testController;
+use App\Http\Controllers\User\KesehatanUserController;
+use App\Http\Controllers\User\KonselingUserController;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\QrController;
-use App\Http\Controllers\testController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\KesehatanController;
-use App\Http\Controllers\InventarisController;
-use App\Http\Controllers\RekamMedisController;
-use App\Http\Controllers\InventarisAlatController;
-use App\Http\Controllers\InventarisObatController;
-use App\Http\Controllers\API\InternalApiController;
-use App\Http\Controllers\SuratManagementController;
-use App\Http\Controllers\PetugasManagementController;
-use App\Http\Controllers\BimbinganKonselingController;
-use App\Http\Controllers\KaryawanManagementController;
-use App\Http\Controllers\User\KesehatanUserController;
-use App\Http\Controllers\User\KonselingUserController;
-use App\Http\Controllers\MahasiswaManagementController;
-use App\Http\Controllers\InventarisConsumableController;
 
 /*
 |--------------------------------------------------------------------------
@@ -58,6 +57,10 @@ use App\Http\Controllers\InventarisConsumableController;
 
 Route::get('/test', [testController::class, 'testprint']);
 
+// Endpoint publik penerima handoff SSO dari E-Management. Sengaja di luar
+// grup middleware 'guest'/'auth' — harus bisa diakses baik oleh browser
+// yang belum punya sesi maupun yang sudah (login akan menimpa sesi lama).
+Route::get('/sso', [SsoLoginController::class, 'receive'])->name('sso.login');
 
 Route::middleware('guest')->group(function () {
     Route::redirect('/', '/login');
@@ -196,7 +199,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/riwayat-surat', [SuratManagementController::class, 'riwayatLaporan'])->name('riwayat');
             Route::get('/export-rekammedis', [RekamMedisController::class, 'laporanRekamMedis'])->name('laporan-rekam-medis');
             Route::post('/print-rekammedis', [RekamMedisController::class, 'printLaporanRekamMedis'])->name('print.laporan-rekam-medis');
-        
+
             // route request surat rujukan from konseling
             Route::get('request-rujukan-konseling', [SuratManagementController::class, 'requestSuratRujukanKonseling'])->name('request-rujukan-konseling');
             Route::get('request-rujukan-konseling/{id}/{requestId}', [SuratManagementController::class, 'detailKonsultasiFromMedical'])->name('detail-request-rujukan-konseling');
@@ -212,7 +215,7 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/form/riwayat-pasien/rekam-medis/{id}', [RekamMedisController::class, 'tipeSurat'])->name('riwayat-pasien.tipe-surat');
             // Download pdf rekam medis
             Route::get('/form/riwayat-pasien/rekam-medis/{id}/download', [RekamMedisController::class, 'downloadRekamMedis'])->name('riwayat-pasien.rekam-medis.download');
-            
+
             // surat keterangan berobat
             Route::get('/form/riwayat-pasien/surat-keterangan-berobat/{id}', [SuratManagementController::class, 'suratKeteranganObat'])->name('form.surat-keterangan-obat');
             Route::patch('/form/store/surat-keterangan-berobat/{id}', [SuratManagementController::class, 'StoreSuratKeteranganObat'])->name('form.store.skb');
@@ -284,11 +287,11 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/data-senso/{id}', [BimbinganKonselingController::class, 'deleteSenso'])->name('delete-senso');
             Route::delete('/data-senso/hapus-anak-senso/{siswa_id}', [BimbinganKonselingController::class, 'deleteSiswaAsuh'])->name('deleteSiswaAsuh');
             Route::delete('/hapus-feedback/{id}', [BimbinganKonselingController::class, 'deleteFeedback'])->name('delete-feedback');
-        
+
             Route::get('/export-konseling', [BimbinganKonselingController::class, 'laporanKonseling'])->name('laporan-konseling');
             Route::post('/print-konsultasi', [BimbinganKonselingController::class, 'printLaporanKonsultasi'])->name('print.laporan-konsultasi');
             Route::post('/print-feedback', [BimbinganKonselingController::class, 'printLaporanFeedback'])->name('print.laporan-feedback');
-        
+
         });
     });
     Route::middleware('role:Admin')->group(function () {
@@ -330,5 +333,5 @@ Route::middleware(['auth'])->group(function () {
     });
 });
 
-require __DIR__ . '/auth.php';
-require __DIR__ . '/api.php';
+require __DIR__.'/auth.php';
+require __DIR__.'/api.php';
