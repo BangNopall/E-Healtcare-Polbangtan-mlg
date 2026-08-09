@@ -9,6 +9,6 @@
 </svg> --}}
 
 <div class="flex items-center gap-2">
-    <img src="{{ asset('img/logo-klinik.jpeg') }}" alt="{{ config('app.name') }}" srcset="" {{ $attributes }}>
+    <img src="{{ asset('img/logo-klinik.jpeg') }}" alt="{{ config('app.name') }}" {{ $attributes }}>
     <span class="font-bold hidden md:block text-xl">E-Klinik Polbangtan-mlg</span>
 </div>

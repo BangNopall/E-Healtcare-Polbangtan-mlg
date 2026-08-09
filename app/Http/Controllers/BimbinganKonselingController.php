@@ -177,7 +177,9 @@ class BimbinganKonselingController extends Controller
 
     public function daftarsiswaAsuh(Request $request, $senso_id)
     {
-        // dd($request->all(), $senso_id);
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+        ]);
 
         $senso = User::find($senso_id);
 
@@ -191,14 +193,14 @@ class BimbinganKonselingController extends Controller
             return back()->with('error', 'Data Mahasiswa tidak ditemukan');
         }
 
+        $existing = BimbinganSenso::where('siswa_id', $siswa->id)->first();
+        if ($existing) {
+            return back()->with('error', 'Mahasiswa ini sudah terdaftar pada Senso lain');
+        }
+
         // Proses Mendaftarkan siswa Asuh Senso
 
         try {
-            $request->validate([
-                'name' => 'required|exists:users,name',
-                'user_id' => 'required|exists:users,id',
-            ]);
-
             DB::beginTransaction();
 
             $bimbinganSenso = BimbinganSenso::create([

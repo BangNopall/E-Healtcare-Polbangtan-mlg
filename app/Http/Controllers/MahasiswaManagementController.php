@@ -48,29 +48,22 @@ class MahasiswaManagementController extends Controller
 
             DB::beginTransaction();
 
-            // $lowPassword = strtolower($request->name);
+            $lowPassword = strtolower($request->name);
 
-            // $notHashedPassword = Str::substr($lowPassword, 0, 5);
+            $notHashedPassword = Str::substr($lowPassword, 0, 5);
 
-            // $createPassword = Hash::make($notHashedPassword);
+            $createPassword = Hash::make($notHashedPassword);
 
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
                 'role' => 'Mahasiswa',
-                // 'password' => $createPassword,
-                // 'cdmi' => 1,
-                // 'cdmi_complete' => 0,
-                // 'dmti' => 1,
-                // 'dmti_complete' => 0,
-                // 'role' => $request->role,
+                'password' => $createPassword,
             ]);
 
             DB::commit();
 
-            // return back
-            // return redirect()->back()->with('success', 'Data mahasiswa baru berhasil dibuat, Password User Tersebut Adalah : ' . $notHashedPassword);
-            return redirect()->back()->with('success', 'Data mahasiswa baru berhasil dibuat, Password User Tersebut Adalah : ' . 'password');
+            return redirect()->back()->with('success', 'Data mahasiswa baru berhasil dibuat, Password User Tersebut Adalah : ' . $notHashedPassword);
         } catch (\Exception $th) {
             DB::rollBack();
 
@@ -361,7 +354,7 @@ class MahasiswaManagementController extends Controller
                     'max:16',
                     Rule::unique('d_m_t_i_s')->where(function ($query) use ($user) {
                         return $query->whereNot('user_id', $user->id);
-                    })->ignore(optional($user->dmti)->id),
+                    }),
                 ],
                 'no_bpjs' => [
                     'required',
@@ -369,7 +362,7 @@ class MahasiswaManagementController extends Controller
                     'max:16',
                     Rule::unique('d_m_t_i_s')->where(function ($query) use ($user) {
                         return $query->whereNot('user_id', $user->id);
-                    })->ignore(optional($user->dmti)->id),
+                    }),
                 ],
                 'no_hp' => [
                     'required',
@@ -377,7 +370,7 @@ class MahasiswaManagementController extends Controller
                     'max:16',
                     Rule::unique('d_m_t_i_s')->where(function ($query) use ($user) {
                         return $query->whereNot('user_id', $user->id);
-                    })->ignore(optional($user->dmti)->id),
+                    }),
                 ],
                 'tempat_kelahiran' => ['required', 'string'],
                 'tanggal_lahir' => ['required', 'date'],

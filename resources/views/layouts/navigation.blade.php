@@ -14,8 +14,7 @@
         <!-- Brand -->
         <div class="shrink-0 flex items-center">
             <a href="{{ route('inventaris.obat.index') }}">
-                <x-application-logo
-                    class="block h-10 rounded-lg w-auto fill-current text-gray-800 dark:text-gray-200" />
+                <x-application-logo class="block h-10 rounded-lg w-10 fill-current text-gray-800 dark:text-gray-200" />
             </a>
         </div>
         <!-- Mobile sub menu button -->

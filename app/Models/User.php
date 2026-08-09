@@ -136,14 +136,16 @@ class User extends Authenticatable
         });
 
         static::updating(function ($user) {
-            if ($user->role == 'Mahasiswa' || $user->role == 'Karyawan') {
+            if ($user->role == 'Mahasiswa') {
                 // $user->kesehatan_token = self::generateUniqueToken();
                 // $user->kesehatan_token_expired_at = self::generateExpiredToken();
-            } elseif($user->role == 'Mahasiswa'){
                 // $user->bimbingan_token = self::generateUniqueTokenBimbingan();
                 // $user->konsultasi_token = self::generateUniqueTokenKonsultasi();
                 // $user->bimbingan_token_expired_at = self::generateExpiredToken();
                 // $user->konsultasi_token_expired_at = self::generateExpiredToken();
+            } elseif ($user->role == 'Karyawan') {
+                // $user->kesehatan_token = self::generateUniqueToken();
+                // $user->kesehatan_token_expired_at = self::generateExpiredToken();
             } else {
                 $user->kesehatan_token = null;
                 $user->kesehatan_token_expired_at = null;
@@ -224,9 +226,11 @@ class User extends Authenticatable
             // return $this->hasOne(Cdmi::class, 'id', 'cdmi_id');
             // return $this->hasOne(Dmti::class, 'id', 'dmti_id');
             // return $this->hasOne(Rpd::class, 'id', 'rpd_id');
+            return null;
         } elseif ($this->role === 'Karyawan') {
             // return $this->hasOne(Dmti::class, 'id', 'dmti_id');
             // return $this->hasOne(Rpd::class, 'id', 'rpd_id');
+            return null;
         } else {
             return null;
         }
@@ -274,7 +278,7 @@ class User extends Authenticatable
 
     public function suratKeteranganBerobat()
     {
-        return $this->hasMany(SuratKeteranganBerobat::class, 'pasien_id', 'dokter_id');
+        return $this->hasMany(SuratKeteranganBerobat::class, 'pasien_id', 'id');
     }
 
     public function SuratKeteranganSakit()

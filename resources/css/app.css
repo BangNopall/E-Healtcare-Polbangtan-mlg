@@ -1,7 +1,12 @@
 @import "tailwindcss";
+@import "flowbite/src/themes/default";
 
 /* Mengakomodasi plugin @tailwindcss/forms jika digunakan */
 @plugin "@tailwindcss/forms";
+@plugin "flowbite/plugin";
+@plugin "@iconify/tailwind4";
+
 
 @source "../views";
 @source "../../app";
+@source "../../node_modules/flowbite";
