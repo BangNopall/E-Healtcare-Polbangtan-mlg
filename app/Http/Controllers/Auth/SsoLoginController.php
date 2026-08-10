@@ -47,6 +47,18 @@ class SsoLoginController extends Controller
         $user = User::where('nim', $request->string('nim'))->first();
 
         if (! $user) {
+            // Fallback: cek tabel CDMI jika kolom nim di users masih null
+            $cdmi = \App\Models\CDMI::where('nim', $request->string('nim'))->first();
+            if ($cdmi && $cdmi->user_id) {
+                $user = User::find($cdmi->user_id);
+                if ($user) {
+                    $user->nim = $request->string('nim');
+                    $user->save();
+                }
+            }
+        }
+
+        if (! $user) {
             // JANGAN buat user baru — SSO ini hanya menerima handoff untuk
             // mahasiswa yang datanya sudah ada di sistem ini (via sinkronisasi
             // CDMI). Nim tak ditemukan dicatat untuk audit/investigasi.
