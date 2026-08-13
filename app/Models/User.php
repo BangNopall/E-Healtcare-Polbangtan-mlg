@@ -194,7 +194,7 @@ class User extends Authenticatable
     /**
      * Check if user has a role
      *
-     * role user [ 'Admin', 'Mahasiswa', 'Dokter', 'Psikiater', 'Karyawan' ]
+     * role user [ 'Admin', 'Mahasiswa', 'Psikolog', 'Karyawan' ]
      * @param string $role
      * @return bool
      */

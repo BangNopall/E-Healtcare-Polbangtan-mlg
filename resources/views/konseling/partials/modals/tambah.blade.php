@@ -24,7 +24,7 @@
                 <div class="mb-4">
                     <div>
                         <x-input-label for="name" class="mb-2">Nama Mahasiswa</x-input-label>
-                        <div x-data="selectConfigs()" x-init="fetchOptions()"
+                        <div x-data="selectConfigs('{{ route('api.userNoSenso') }}')" x-init="fetchOptions()"
                             class="flex flex-col items-center relative">
                             <x-input-text @click.away="close()" x-model="filter"
                                 x-transition:leave="transition ease-in duration-100"

@@ -100,7 +100,7 @@ Route::middleware(['auth'])->group(function () {
         });
     });
 
-    Route::middleware('role:Admin,Dokter,Psikolog,Perawat')->group(function () {
+    Route::middleware('role:Admin,Psikolog')->group(function () {
 
         // konseling prefix route
         Route::prefix('konseling')->name('konseling.')->group(function () {
@@ -116,11 +116,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/form/review/konsultasi/{id}', [BimbinganKonselingController::class, 'reviewKonsultasi'])->name('review-konsultasi');
             Route::get('riwayat-konsultasi', [BimbinganKonselingController::class, 'riwayatKonsultasi'])->name('riwayat-konsultasi');
             Route::get('riwayat-konsultasi/{id}', [BimbinganKonselingController::class, 'detailKonsultasi'])->name('detail-konsultasi');
-            Route::get('hasil-surat-rujukan', [BimbinganKonselingController::class, 'hasilSuratRujukan'])->name('hasil-surat-rujukan');
-            Route::get('hasil-surat-rujukan/{requestId}', [BimbinganKonselingController::class, 'detailSuratRujukan'])->name('detail-surat-rujukan');
-
             Route::post('riwayat-konsultasi/filter', [BimbinganKonselingController::class, 'filterKonsultasi'])->name('filter-konsultasi');
-            Route::post('request-surat-rujukan/{id}', [BimbinganKonselingController::class, 'requestSuratRujukan'])->name('request-surat-rujukan');
             Route::post('store/konsultasi/{id}', [BimbinganKonselingController::class, 'storeKonsultasi'])->name('storeKonsultasi');
             Route::post('store/kamera-konsultasi', [QrController::class, 'storeKameraKonsultasi'])->name('storeKameraKonsultasi');
             Route::post('store/kamera-bimbingan', [QrController::class, 'storeKameraBimbingan'])->name('storeKameraBimbingan');
@@ -180,7 +176,13 @@ Route::middleware(['auth'])->group(function () {
             });
         });
     });
+    Route::middleware('role:Admin,Psikolog')->prefix('api')->name('api.')->group(function () {
+        Route::get('/get_user', [\App\Http\Controllers\API\InternalApiController::class, 'get_user'])->name('get_users');
+        Route::get('/get_user_no_senso', [\App\Http\Controllers\API\InternalApiController::class, 'userNoSenso'])->name('userNoSenso');
+        Route::get('/get_user_bukan_senso_bukan_anak_asuh', [\App\Http\Controllers\API\InternalApiController::class, 'userNoSensoNoAnakAsuh'])->name('userNoSensoNoAnakAsuh');
+        Route::get('/get_konseling', [\App\Http\Controllers\API\InternalApiController::class, 'getKonseling'])->name('getKonseling');
+    });
+
 });
 
 require __DIR__.'/auth.php';
-require __DIR__.'/api.php';

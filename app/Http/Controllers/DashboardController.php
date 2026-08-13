@@ -7,7 +7,7 @@ use App\Models\JadwalBimbingan;
 use App\Models\User;
 
 use App\Models\PresensiBimbingan;
-
+use App\Models\DataPsikolog;
 class DashboardController extends Controller
 {
 
@@ -21,7 +21,7 @@ class DashboardController extends Controller
         $presensi = PresensiBimbingan::all();
 
         $mahasiswa = $user->where('role', 'Mahasiswa')->count();
-        $psikiater = $user->where('role', 'Psikiater')->count();
+        $psikolog = $user->where('role', 'Psikolog')->count();
 
         // ambil jadwal bimbingan yang tanggalnya hari ini       
         $materitoday = $jadwal->where('tanggal', now()->format('Y-m-d'))->first();
@@ -37,6 +37,6 @@ class DashboardController extends Controller
         $izin = $presensi->where('status', 'Izin')->where('tanggal_presensi', now()->format('Y-m-d'))->count();
         $alpha = $presensi->where('status', 'Alpha')->where('tanggal_presensi', now()->format('Y-m-d'))->count();
 
-        return view('konseling.dashboard', compact('mahasiswa', 'psikiater', 'feedback', 'konsultasi', 'jadwal', 'materitoday', 'lastjadwal', 'sakit', 'izin', 'alpha'));
+        return view('konseling.dashboard', compact('mahasiswa', 'psikolog', 'feedback', 'konsultasi', 'jadwal', 'materitoday', 'lastjadwal', 'sakit', 'izin', 'alpha'));
     }
 }

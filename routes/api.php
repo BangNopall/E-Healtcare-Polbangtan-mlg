@@ -20,14 +20,4 @@ use Illuminate\Support\Facades\Route;
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //     return $request->user();
 // });
-Route::middleware('role:Admin,Developer,Dokter,Psikolog,Perawat')->name('api.')->group(function () {
-    Route::get('/get_user', [InternalApiController::class, 'get_user'])->name('get_users');
-
-    Route::get('/get_user_no_senso', [InternalApiController::class, 'userNoSenso'])->name('userNoSenso');
-    Route::get('/get_user_bukan_senso_bukan_anak_asuh', [InternalApiController::class, 'userNoSensoNoAnakAsuh'])->name('userNoSensoNoAnakAsuh');
-
-    Route::get('/get_konseling', [InternalApiController::class, 'getKonseling'])->name('getKonseling');
-
-});
-
-
+// Moved InternalApiController routes to routes/web.php so they can use web session authentication.

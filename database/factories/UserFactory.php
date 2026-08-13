@@ -31,7 +31,7 @@ class UserFactory extends Factory
          */
         public function definition()
         {
-            $role = $this->faker->randomElement(['Mahasiswa', 'Dokter', 'Psikolog', 'Karyawan']);
+            $role = $this->faker->randomElement(['Mahasiswa', 'Psikolog', 'Karyawan']);
     
             $cdmi = $role === 'Mahasiswa' ? true : null;
             $cdmi_complete = $role === 'Mahasiswa' ? false : null;

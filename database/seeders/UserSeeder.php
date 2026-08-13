@@ -41,13 +41,7 @@ class UserSeeder extends Seeder
             'role' => 'Admin',
         ]);
 
-        // Ensure Admin and Dokter users are created
-        User::create([
-            'name' => 'Doctor Johny Sins',
-            'email' => 'dokter@gmail.com',
-            'password' => bcrypt('password'),
-            'role' => 'Dokter',
-        ]);
+
         User::create([
             'name' => 'Doctor Johny Sins',
             'email' => 'psikolog@gmail.com',
@@ -59,19 +53,6 @@ class UserSeeder extends Seeder
             'email' => 'tegar@gmail.com',
             'password' => bcrypt('password'),
             'role' => 'Admin',
-        ]);
-        User::create([
-            'name' => 'Dokter Priandika',
-            'email' => 'doktertegar@gmail.com',
-            'password' => bcrypt('password'),
-            'role' => 'Dokter',
-        ]);
-
-        User::create([
-            'name' => 'Perawat Mathara',
-            'email' => 'perawat@gmail.com',
-            'password' => bcrypt('password'),
-            'role' => 'Perawat',
         ]);
         User::create([
             'name' => 'nopal',
@@ -172,9 +153,6 @@ class UserSeeder extends Seeder
             'dmti_complete' => 0,
         ]);
 
-        User::factory(10)->create([
-            'role' => 'Dokter',
-        ]);
         User::factory(10)->create([
             'role' => 'Mahasiswa',
             'senso' => 1,
