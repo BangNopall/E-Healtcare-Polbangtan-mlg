@@ -4,8 +4,7 @@
             {{ __('Akun Profil') }}
         </h2>
     </header>
-    <form action="{{ route('lainnya.petugas.update-foto', $user->id) }}" method="post" class="w-full h-full my-3"
-        enctype="multipart/form-data">
+    <form action="{{ route('lainnya.petugas.update-foto', $user->id) }}" method="post" class="w-full h-full my-3" enctype="multipart/form-data">
         @csrf
         <div class="relative w-full h-full" id="inputfilefoto">
             @if ($user->avatar_url == null)
