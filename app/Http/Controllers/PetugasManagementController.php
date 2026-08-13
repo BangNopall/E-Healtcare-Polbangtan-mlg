@@ -5,8 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Blok;
 use App\Models\CDMI;
 use App\Models\DMTI;
-use App\Models\InventoryObat;
-use App\Models\ObatLog;
+
 use App\Models\Prodi;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -114,7 +113,7 @@ class PetugasManagementController extends Controller
             DB::beginTransaction();
 
             // Perbarui createdBy menjadi admin default
-            InventoryObat::where('createdBy', $user_id)->update(['createdBy' => $admin->id]);
+
 
             $user->delete();
 

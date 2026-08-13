@@ -22,15 +22,6 @@
                         </span>
                         <span class="ml-2 text-sm"> Dashboards</span>
                     </a>
-                    {{-- dashboard user --}}
-                    {{-- @if ((Auth::check() && Auth::user()->role == 'Mahasiswa') || Auth::user()->role == 'Karyawan')
-                    <div role="menu" x-show="open" class="mt-2 space-y-2 px-7" aria-label="Dashboards">
-                        <a href="/user/medical/" role="menuitem"
-                            class="{{ Request::is('user/medical') ? 'text-gray-700 dark:text-light' : 'text-gray-400 hover:text-gray-700 dark:text-gray-400' }} block p-2 text-sm transition-colors duration-200 rounded-md  dark:hover:text-light">
-                            Medical
-                        </a>
-                    </div>
-                @endif --}}
                 </div>
             @endif
 

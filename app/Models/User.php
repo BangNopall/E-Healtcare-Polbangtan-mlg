@@ -2,10 +2,7 @@
 
 namespace App\Models;
 
-use App\Models\ObatLog;
 use Illuminate\Support\Str;
-use App\Models\InventoryLog;
-use App\Models\InventoryObat;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Notifications\Notifiable;
@@ -206,20 +203,6 @@ class User extends Authenticatable
         return $this->role === $role;
     }
 
-    public function inventoryObat()
-    {
-        return $this->hasMany(InventoryObat::class);
-    }
-
-    public function obatLog()
-    {
-        return $this->hasMany(ObatLog::class);
-    }
-
-    public function inventoryLog()
-    {
-        return $this->hasMany(InventoryLog::class);
-    }
 
     public function getDataUser($role)
     {
@@ -277,28 +260,4 @@ class User extends Authenticatable
         return $this->hasMany(DataPsikolog::class);
     }
 
-    public function suratKeteranganBerobat()
-    {
-        return $this->hasMany(SuratKeteranganBerobat::class, 'pasien_id', 'id');
-    }
-
-    public function SuratKeteranganSakit()
-    {
-        return $this->hasMany(SuratKeteranganSakit::class);
-    }
-
-    public function SuratRujukan()
-    {
-        return $this->hasMany(SuratRujukan::class);
-    }
-
-    public function DokterRM()
-    {
-        return $this->hasMany(RekamMedis::class, 'dokter_id');
-    }
-
-    public function PasienRM()
-    {
-        return $this->hasMany(RekamMedis::class, 'pasien_id');
-    }
 }
