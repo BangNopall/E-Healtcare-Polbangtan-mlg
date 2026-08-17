@@ -21,7 +21,7 @@
                             class="icon-[ion--cloud-upload-outline] w-8 h-8 mb-4 text-gray-500 dark:text-gray-400"></span>
                         <p class="mb-2 text-sm text-gray-500 dark:text-gray-400 font-semibold text-center">
                             Tekan
-                            untuk unggah foto</p>
+                            untuk unggah foto <span class="font-bold">(Max 2MB)</span></p>
                     </div>
                 </label>
             @else
