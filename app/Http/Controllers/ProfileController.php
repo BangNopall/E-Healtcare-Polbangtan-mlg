@@ -102,8 +102,6 @@ class ProfileController extends Controller
 
         $user = User::find($user_id);
 
-        // dd($user);
-
         if ($user) {
             if ($user->avatar_url) {
                 Storage::delete('/public/images/' . $user->avatar_url);

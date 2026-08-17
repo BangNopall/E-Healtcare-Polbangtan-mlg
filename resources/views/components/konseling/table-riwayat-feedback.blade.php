@@ -7,7 +7,7 @@
             </td>
             <td class="px-4 py-2">
                 @if ($fb->siswa->getCDMI)
-                    {{ $fb->siswa->getCDMI->nim }}
+                    {{ $fb->siswa->nim }}
                 @else
                     Data Belum Lengkap
                 @endif

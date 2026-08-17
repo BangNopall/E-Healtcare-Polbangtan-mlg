@@ -5,7 +5,7 @@
             {{ $loop->iteration }}
         </td>
         <td class="px-4 py-2">
-            {{ $dataPsikolog->user->getCDMI->nim }}
+            {{ $dataPsikolog->user->nim }}
         </td>
         <td class="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
             {{ $dataPsikolog->user->name }}

@@ -7,8 +7,8 @@
     <div class="mt-2 space-y-4">
         <div>
             <x-input-label for="nim" :value="'NIM'" />
-            <x-input-text id="nim" name="nim" type="number" class="mt-2 block w-full cursor-not-allowed"
-                :value="old('nim', isset($cdmi) ? $cdmi->nim : '')" disabled readonly placeholder="Kosong" />
+            <x-input-text id="nim" name="nim" type="text" class="mt-2 block w-full cursor-not-allowed"
+                :value="old('nim', isset($user) ? $user->nim : '')" disabled readonly placeholder="Kosong" />
         </div>
         <div>
             <x-input-label for="prodi" :value="'Program Studi'" />
@@ -23,7 +23,7 @@
         </div>
         <div>
             <x-input-label for="no_ruangan" :value="'Nomor Ruangan'" />
-            <x-input-text id="no_ruangan" disabled readonly name="no_ruangan" type="number"
+            <x-input-text id="no_ruangan" disabled readonly name="no_ruangan" type="text"
                 class="mt-2 block w-full cursor-not-allowed" :value="old('no_ruangan', isset($cdmi) ? $cdmi->no_ruangan : '')" placeholder="Kosong" />
         </div>
     </div>

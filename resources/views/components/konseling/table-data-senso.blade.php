@@ -6,7 +6,7 @@
         </td>
         <td class="px-4 py-2">
             @if ($senso->getCDMI)
-                {{ $senso->getCDMI->nim }}
+                {{ $senso->nim }}
             @else
                 Data tidak ditemukan
             @endif
