@@ -64,6 +64,7 @@ class ProfileController extends Controller
 
         if ($request->user()->isDirty('email')) {
             $request->user()->email_verified_at = null;
+            $request->user()->is_email_changed = true;
         }
 
         $request->user()->save();
@@ -235,21 +236,24 @@ class ProfileController extends Controller
 
             // dd($request->all());
 
-            $request->validate([
-                'nim' => [
+            $rules = [
+                'blok_id' => ['required', 'numeric'],
+                'no_ruangan' => ['required', 'string'],
+            ];
+
+            if (!$user->cdmi_complete) {
+                $rules['nim'] = [
                     'required',
                     'string',
                     'max:16',
                     Rule::unique('c_d_m_i_s')->where(function ($query) use ($user) {
                         return $query->whereNot('user_id', $user->id);
                     })->ignore(optional($user->cdmi)->id),
-                ],
-                'prodi_id' => ['required', 'numeric',],
-                'blok_id' => ['required', 'numeric'],
-                'no_ruangan' => ['required', 'string'],
-            ]);
+                ];
+                $rules['prodi_id'] = ['required', 'numeric'];
+            }
 
-            // dd($request->all());
+            $request->validate($rules);
 
             DB::beginTransaction();
 
@@ -257,8 +261,6 @@ class ProfileController extends Controller
 
             if ($cdmi) {
                 $cdmi->update([
-                    'nim' => $request->nim,
-                    'prodi_id' => $request->prodi_id,
                     'blok_id' => $request->blok_id,
                     'no_ruangan' => $request->no_ruangan,
                 ]);
@@ -270,6 +272,8 @@ class ProfileController extends Controller
                     'blok_id' => $request->blok_id,
                     'no_ruangan' => $request->no_ruangan,
                 ]);
+
+                $user->nim = $request->nim;
             }
 
             $user->update([

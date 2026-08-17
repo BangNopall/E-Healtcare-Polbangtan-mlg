@@ -38,6 +38,8 @@ class User extends Authenticatable
         'kesehatan_token_expired_at',
         'bimbingan_token_expired_at',
         'konsultasi_token_expired_at',
+        'is_email_changed',
+        'is_password_changed',
     ];
 
     /**
