@@ -13,8 +13,9 @@
         @method('patch')
         <div>
             <x-input-label for="nim" :value="'Nomor Induk Mahasiswa'" />
-            <x-input-text id="nim" type="number" name="nim" class="mt-2 block w-full {{ $user->cdmi_complete ? 'bg-gray-200 cursor-not-allowed dark:bg-gray-700' : '' }}" :value="old('nim', isset($cdmi) ? $cdmi->nim : '')" required
-                autofocus placeholder="151231xxxxxx" {{ $user->cdmi_complete ? 'readonly' : '' }} />
+            <x-input-error class="mt-1" :messages="$errors->get('nim')" />
+            <x-input-text id="nim" type="text" name="nim" class="mt-2 block w-full text-gray-400! bg-gray-200 cursor-not-allowed" :value="old('nim', isset($cdmi) ? $cdmi->nim : '')"
+                required autofocus placeholder="10" readonly />
             <x-input-error class="mt-1" :messages="$errors->get('nim')" />
         </div>
 
@@ -22,7 +23,7 @@
             <div>
                 <x-input-label for="prodi_id" :value="'Program Studi'" />
                 <select id="prodi_id" name="prodi_id" {{ $user->cdmi_complete ? 'disabled' : '' }}
-                    class="block w-full mt-2 items-center text-sm text-gray-900 border border-gray-300 rounded-lg {{ $user->cdmi_complete ? 'bg-gray-200 cursor-not-allowed dark:bg-gray-700' : 'bg-gray-50' }} focus:ring-blue-500 focus:border-blue-500 dark:bg-darker dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                    class="block w-full mt-2 items-center text-sm text-gray-400 dark:text-gray-400! border border-gray-300 rounded-lg {{ $user->cdmi_complete ? 'bg-gray-200 cursor-not-allowed dark:bg-gray-700' : 'bg-gray-50' }} focus:ring-blue-500 focus:border-blue-500 dark:bg-darker dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
                     <option hidden selected>Pilih</option>
                     @foreach ($prodis as $prodi)
                         <option value="{{ $prodi->id }}"

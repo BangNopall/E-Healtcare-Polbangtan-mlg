@@ -100,6 +100,7 @@ class UserSeeder extends Seeder
             $user->update([
                 'cdmi_complete' => 1,
                 'dmti_complete' => 1,
+                'nim' => '1234567890',
             ]);
         });
 
@@ -180,6 +181,7 @@ class UserSeeder extends Seeder
                 // Update the user to mark CDMI as complete
                 $mhs->update([
                     'cdmi_complete' => 1,
+                    'nim' => $nim,
                 ]);
             });
         }
