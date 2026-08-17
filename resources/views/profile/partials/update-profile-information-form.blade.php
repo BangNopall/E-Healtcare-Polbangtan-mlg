@@ -44,6 +44,7 @@
                 <span class="icon-[line-md--uploading-loop] w-6 h-6"></span>
             </x-button>
         </div>
+        <x-input-error class="mt-2" :messages="$errors->get('avatar_url')" />
     </form>
     <form method="post" action="{{ route('profile.update') }}" class=" space-y-6" enctype="multipart/form-data">
         @csrf
