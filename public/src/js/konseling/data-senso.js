@@ -1,4 +1,4 @@
-function selectConfigs() {
+function selectConfigs(apiUrl) {
     return {
         filter: "",
         show: false,
@@ -42,7 +42,7 @@ function selectConfigs() {
             this.options = {
                 results: [],
             };
-            const url = document.getElementById("url_getNoSenso").textContent;
+            const url = apiUrl || document.getElementById("url_getNoSenso").textContent;
             fetch(url)
                 .then((response) => {
                     if (!response.ok) {
@@ -69,7 +69,6 @@ function selectConfigs() {
         onOptionClick(index) {
             this.focusedOptionIndex = index;
             this.selectOption();
-            document.getElementById("user_id").value = this.selected.id;
         },
         selectOption() {
             if (!this.isOpen()) {
@@ -77,12 +76,17 @@ function selectConfigs() {
             }
             this.focusedOptionIndex = this.focusedOptionIndex ?? 0;
             const selected = this.filteredOptions()[this.focusedOptionIndex];
-            if (this.selected && this.selected.id == selected.id) {
-                this.filter = "";
-                this.selected = null;
-            } else {
-                this.selected = selected;
-                this.filter = this.selectedName();
+            
+            if (selected) {
+                if (this.selected && this.selected.id == selected.id) {
+                    this.filter = "";
+                    this.selected = null;
+                    document.getElementById("user_id").value = "";
+                } else {
+                    this.selected = selected;
+                    this.filter = this.selectedName();
+                    document.getElementById("user_id").value = selected.id;
+                }
             }
             this.close();
         },

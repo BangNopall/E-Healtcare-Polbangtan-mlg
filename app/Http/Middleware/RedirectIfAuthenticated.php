@@ -25,7 +25,7 @@ class RedirectIfAuthenticated
                 $role = Auth::user()->role;
 
                 return redirect('/');
-                // if($role == 'Admin' || $role == 'Dokter' || $role == 'Psikiater'){
+                // if($role == 'Admin' || $role == 'Psikolog'){
                 //     return redirect(RouteServiceProvider::HOMEADMIN);
                 // } elseif ($role == 'Karyawan'|| $role == 'Mahasiswa' ) {
                 //     return redirect(RouteServiceProvider::HOMEUSER);

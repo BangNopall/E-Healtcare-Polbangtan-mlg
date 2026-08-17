@@ -6,9 +6,7 @@
             <!-- Dashboards links -->
             @if (
                 (Auth::check() && Auth::user()->role == 'Admin') ||
-                    Auth::user()->role == 'Dokter' ||
-                    Auth::user()->role == 'Psikolog' ||
-                    Auth::user()->role == 'Perawat')
+                    Auth::user()->role == 'Psikolog')
                 <div x-data="{ isActive: true, open: true }">
                     <!-- active & hover classes 'bg-blue-100 dark:bg-blue-600' -->
                     <a href="/konseling"
@@ -22,15 +20,6 @@
                         </span>
                         <span class="ml-2 text-sm"> Dashboards</span>
                     </a>
-                    {{-- dashboard user --}}
-                    {{-- @if ((Auth::check() && Auth::user()->role == 'Mahasiswa') || Auth::user()->role == 'Karyawan')
-                    <div role="menu" x-show="open" class="mt-2 space-y-2 px-7" aria-label="Dashboards">
-                        <a href="/user/medical/" role="menuitem"
-                            class="{{ Request::is('user/medical') ? 'text-gray-700 dark:text-light' : 'text-gray-400 hover:text-gray-700 dark:text-gray-400' }} block p-2 text-sm transition-colors duration-200 rounded-md  dark:hover:text-light">
-                            Medical
-                        </a>
-                    </div>
-                @endif --}}
                 </div>
             @endif
 
@@ -38,10 +27,8 @@
             {{-- konseling admin, dokter, psikiater, mahasiswa --}}
             @if (
                 (Auth::check() && Auth::user()->role == 'Admin') ||
-                    Auth::user()->role == 'Dokter' ||
                     Auth::user()->role == 'Psikolog' ||
-                    Auth::user()->role == 'Mahasiswa' ||
-                    Auth::user()->role == 'Perawat')
+                    Auth::user()->role == 'Mahasiswa')
                 <div x-data="{ isActive: true, open: true }">
                     <!-- active & hover classes 'bg-blue-100 dark:bg-blue-600' -->
                     <a href="#" @click="$event.preventDefault(); open = open"
@@ -61,9 +48,7 @@
                     {{-- konseling admin, dokter, pskiater --}}
                     @if (
                         (Auth::check() && Auth::user()->role == 'Admin') ||
-                            Auth::user()->role == 'Dokter' ||
-                            Auth::user()->role == 'Psikolog' ||
-                            Auth::user()->role == 'Perawat')
+                            Auth::user()->role == 'Psikolog')
                         <div x-show="open" class="mt-2 space-y-2 px-7" role="menu" arial-label="konseling">
                             <!-- active & hover classes 'text-gray-700 dark:text-light' -->
                             <!-- inActive classes 'text-gray-400 dark:text-gray-400' -->
@@ -86,10 +71,6 @@
                             <a href="/konseling/riwayat-konsultasi" role="menuitem"
                                 class="{{ Request::is('konseling/riwayat-konsultasi*') ? 'text-gray-700 dark:text-light' : 'text-gray-400 hover:text-gray-700 dark:text-gray-400' }} block p-2 text-sm transition-colors duration-200 rounded-md  dark:hover:text-light">
                                 Riwayat Konsultasi
-                            </a>
-                            <a href="/konseling/hasil-surat-rujukan" role="menuitem"
-                                class="{{ Request::is('konseling/hasil-surat-rujukan*') ? 'text-gray-700 dark:text-light' : 'text-gray-400 hover:text-gray-700 dark:text-gray-400' }} block p-2 text-sm transition-colors duration-200 rounded-md  dark:hover:text-light">
-                                Hasil Surat Rujukan
                             </a>
                             <a href="/konseling/data-sensuh" role="menuitem"
                                 class="{{ Request::is('konseling/data-sensuh*') ? 'text-gray-700 dark:text-light' : 'text-gray-400 hover:text-gray-700 dark:text-gray-400' }} block p-2 text-sm transition-colors duration-200 rounded-md  dark:hover:text-light">

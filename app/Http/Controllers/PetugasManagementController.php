@@ -5,8 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Blok;
 use App\Models\CDMI;
 use App\Models\DMTI;
-use App\Models\InventoryObat;
-use App\Models\ObatLog;
+
 use App\Models\Prodi;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -27,7 +26,7 @@ class PetugasManagementController extends Controller
 {
     public function index()
     {
-        $roles = ['Admin', 'Dokter', 'Psikolog', 'Perawat'];
+        $roles = ['Admin', 'Psikolog'];
         $data = User::whereIn('role', $roles)->paginate(20);
         return view('lainnya.petugas.data-petugas', compact('data'));
     }
@@ -38,7 +37,7 @@ class PetugasManagementController extends Controller
             $request->validate([
                 'name' => ['required', 'string', 'max:255'],
                 'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users'],
-                'role' => ['required', 'string', Rule::in(['Dokter', 'Psikolog', 'Admin', 'Perawat'])],
+                'role' => ['required', 'string', Rule::in(['Psikolog', 'Admin'])],
             ]);
 
             DB::beginTransaction();
@@ -114,7 +113,7 @@ class PetugasManagementController extends Controller
             DB::beginTransaction();
 
             // Perbarui createdBy menjadi admin default
-            InventoryObat::where('createdBy', $user_id)->update(['createdBy' => $admin->id]);
+
 
             $user->delete();
 
@@ -234,7 +233,7 @@ class PetugasManagementController extends Controller
                 $request->validate([
                     'name' => ['required', 'string', 'max:255'],
                     'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->whereNot('email', $user->email)->ignore(optional($user)->id)],
-                    'role' => ['required', 'string', Rule::in(['Mahasiswa', 'Dokter', 'Psikolog', 'Karyawan', 'Admin', 'Perawat'])],
+                    'role' => ['required', 'string', Rule::in(['Mahasiswa', 'Psikolog', 'Karyawan', 'Admin'])],
                 ]);
 
                 DB::beginTransaction();
@@ -291,7 +290,7 @@ class PetugasManagementController extends Controller
                     }
                 }
 
-                if ($request->role == 'Admin' || $request->role == 'Dokter' || $request->role == 'Psikolog'|| $request->role == 'Perawat') {
+                if ($request->role == 'Admin' || $request->role == 'Psikolog') {
                     $user->update([
                         'dmti' => 0,
                         'dmti_complete' => 0,
@@ -374,7 +373,7 @@ class PetugasManagementController extends Controller
 
             $query = User::query();
 
-            $query->whereIn('role', ['Admin', 'Dokter', 'Psikiater']);
+            $query->whereIn('role', ['Admin', 'Psikolog']);
 
             // Filter based on name or email if provided
             if (!empty($upperName)) {

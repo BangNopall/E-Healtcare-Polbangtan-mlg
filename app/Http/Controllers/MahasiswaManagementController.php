@@ -37,7 +37,7 @@ class MahasiswaManagementController extends Controller
             $request->validate([
                 'name' => ['required', 'string', 'max:255'],
                 'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-                // 'role' => ['required', 'string', Rule::in(['Mahasiswa', 'Dokter', 'Psikiater', 'Karyawan', 'Admin'])],
+                // 'role' => ['required', 'string', Rule::in(['Mahasiswa', 'Psikolog', 'Karyawan', 'Admin'])],
             ]);
 
             $email = $request->email;
@@ -243,7 +243,7 @@ class MahasiswaManagementController extends Controller
                 $request->validate([
                     'name' => ['required', 'string', 'max:255'],
                     'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->whereNot('email', $user->email)->ignore(optional($user)->id)],
-                    'role' => ['required', 'string', Rule::in(['Mahasiswa', 'Dokter', 'Psikolog', 'Karyawan', 'Admin', 'Perawat'])],
+                    'role' => ['required', 'string', Rule::in(['Mahasiswa', 'Psikolog', 'Karyawan', 'Admin'])],
                 ]);
 
                 DB::beginTransaction();
@@ -300,7 +300,7 @@ class MahasiswaManagementController extends Controller
                     }
                 }
 
-                if ($request->role == 'Admin' || $request->role == 'Dokter' || $request->role == 'Psikolog' || $request->role == 'Perawat') {
+                if ($request->role == 'Admin' || $request->role == 'Psikolog') {
                     $user->update([
                         'dmti' => 0,
                         'dmti_complete' => 0,

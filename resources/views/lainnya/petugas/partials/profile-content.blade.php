@@ -4,8 +4,7 @@
             {{ __('Akun Profil') }}
         </h2>
     </header>
-    <form action="{{ route('lainnya.petugas.update-foto', $user->id) }}" method="post" class="w-full h-full my-3"
-        enctype="multipart/form-data">
+    <form action="{{ route('lainnya.petugas.update-foto', $user->id) }}" method="post" class="w-full h-full my-3" enctype="multipart/form-data">
         @csrf
         <div class="relative w-full h-full" id="inputfilefoto">
             @if ($user->avatar_url == null)
@@ -65,22 +64,15 @@
                 <x-input-error class="mt-1" :messages="$errors->get('email')" />
             </div>
             <div class="sm:col-span-2">
-                <x-input-label for="role" :value="'role'" />
+                <x-input-label for="role" :value="'Role'" />
                 <select name="role" id="role"
                     class="block bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 w-full dark:bg-darker dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
                     <option value="Admin" {{ old('role', isset($user) && $user->role == 'Admin' ? 'selected' : '') }}>
                         Admin
                     </option>
-                    <option value="Dokter" {{ old('role', isset($user) && $user->role == 'Dokter' ? 'selected' : '') }}>
-                        Dokter
-                    </option>
                     <option value="Psikolog"
                         {{ old('role', isset($user) && $user->role == 'Psikolog' ? 'selected' : '') }}>
-                        Psikiater
-                    </option>
-                    <option value="Perawat"
-                        {{ old('role', isset($user) && $user->role == 'Perawat' ? 'selected' : '') }}>
-                        Perawat
+                        Psikolog
                     </option>
                     <option value="Mahasiswa"
                         {{ old('role', isset($user) && $user->role == 'Mahasiswa' ? 'selected' : '') }}>
