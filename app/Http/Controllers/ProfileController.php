@@ -221,7 +221,6 @@ class ProfileController extends Controller
     public function updateCDMI(Request $request, $user_id)
     {
         try {
-            // dd($request->all(), $user_id);
             $user = User::find($user_id);
 
             if (!$user) {

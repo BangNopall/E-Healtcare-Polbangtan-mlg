@@ -53,8 +53,25 @@ class MahasiswaSeeder extends Seeder
                 // Combine columns and values into an associative array
                 $data = array_combine($columns, $values);
 
+                $prodiId = null;
+                if (isset($data['prodi_id'])) {
+                    $prodiId = $data['prodi_id'];
+                    unset($data['prodi_id']);
+                }
+
                 // Create user using the model to trigger events
-                User::create($data);
+                $user = User::create($data);
+
+                // Create CDMI record if we have prodi_id
+                if ($prodiId !== null) {
+                    \App\Models\CDMI::create([
+                        'user_id' => $user->id,
+                        'nim' => $user->nim,
+                        'prodi_id' => $prodiId,
+                        'blok_id' => 1, // Default blok
+                        'no_ruangan' => 'Belum Diisi',
+                    ]);
+                }
             } else {
                 $this->command->warn('No match: ' . $statement);
             }

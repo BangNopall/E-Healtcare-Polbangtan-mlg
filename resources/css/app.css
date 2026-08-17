@@ -1,6 +1,6 @@
 @import "tailwindcss";
-@custom-variant dark (&:where(.dark, .dark *));
 @import "flowbite/src/themes/default";
+@custom-variant dark (&:where(.dark, .dark *));
 
 /* Mengakomodasi plugin @tailwindcss/forms jika digunakan */
 @plugin "@tailwindcss/forms";
