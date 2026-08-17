@@ -27,9 +27,9 @@ class DatabaseSeeder extends Seeder
 
 
         // Feeback dummy data
-        $this->call(FeedbackSeeder::class);
+        // $this->call(FeedbackSeeder::class);
 
-        // konsultasi dummy data
-        $this->call(KonsultasiSeeder::class);
+        // // konsultasi dummy data
+        // $this->call(KonsultasiSeeder::class);
     }
 }
