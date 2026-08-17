@@ -23,7 +23,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
-            $table->enum('role', ['Mahasiswa', 'Dokter', 'Psikolog', 'Karyawan', 'Admin', 'Perawat'])->default('Mahasiswa');
+            $table->enum('role', ['Mahasiswa', 'Psikolog', 'Karyawan', 'Admin'])->default('Mahasiswa');
             $table->string('avatar_url')->nullable()->default(null);
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');

@@ -89,14 +89,7 @@
                                 <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
                                     Konsultasi Konseling
                                 </h2>
-                                <div class="flex items-end mt-2 lg:mt-0 ml-0 lg:ml-auto">
-                                    <form action="{{ route('konseling.request-surat-rujukan', $dataPsikolog->id) }}" method="POST">
-                                        @csrf
-                                        <x-button type="submit" class="p-2">
-                                            Request Rujukan
-                                        </x-button>
-                                    </form>
-                                </div>
+
                             </div>
                         </header>
                         <div class="mt-3 bg-gray-100 dark:bg-dark p-3 rounded">
