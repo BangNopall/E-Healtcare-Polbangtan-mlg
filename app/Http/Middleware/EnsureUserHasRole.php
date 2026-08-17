@@ -22,6 +22,10 @@ class EnsureUserHasRole
     {
         $user = Auth::user();
 
+        if (! $user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
         foreach ($roles as $role) {
             if ($user->hasRole($role)) {
                 return $next($request);

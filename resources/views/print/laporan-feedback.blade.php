@@ -115,7 +115,7 @@
                             <td>{{ $d->jadwal->created_at->format('F Y') }}</td>
                             <td>
                                 @if ($d->siswa->cdmi_complete == 1)
-                                    {{ $d->siswa->getCDMI->nim }}
+                                    {{ $d->siswa->nim }}
                                 @else
                                     -
                                 @endif

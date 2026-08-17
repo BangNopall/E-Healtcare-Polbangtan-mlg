@@ -51,8 +51,8 @@
                             <div class="mt-2 space-y-4">
                                 <div>
                                     <x-input-label for="nim" :value="'NIM'" />
-                                    <x-input-text id="nim" name="nim" type="number"
-                                        class="mt-2 block w-full cursor-not-allowed" :value="old('nim', isset($cdmi) ? $cdmi->nim : '')" disabled readonly
+                                    <x-input-text id="nim" name="nim" type="text"
+                                        class="mt-2 block w-full cursor-not-allowed" :value="old('nim', isset($user) ? $user->nim : '')" disabled readonly
                                         placeholder="Kosong" />
                                 </div>
                                 <div>
@@ -69,7 +69,7 @@
                                 </div>
                                 <div>
                                     <x-input-label for="no_ruangan" :value="'Nomor Ruangan'" />
-                                    <x-input-text id="no_ruangan" disabled readonly name="no_ruangan" type="number"
+                                    <x-input-text id="no_ruangan" disabled readonly name="no_ruangan" type="text"
                                         class="mt-2 block w-full cursor-not-allowed" :value="old('no_ruangan', isset($cdmi) ? $cdmi->no_ruangan : '')"
                                         placeholder="Kosong" />
                                 </div>
@@ -96,7 +96,7 @@
                                 <div class="flex flex-col sm:flex-row gap-2 justify-between">
                                     <div class="w-auto sm:w-[500px]">
                                         <x-input-label for="name" class="mb-2">Nama Mahasiswa</x-input-label>
-                                        <div x-data="selectConfigs()" x-init="fetchOptions()"
+                                        <div x-data="selectConfigs('{{ route('api.userNoSensoNoAnakAsuh') }}')" x-init="fetchOptions()"
                                             class="flex flex-col items-center relative">
                                             <x-input-text @click.away="close()" x-model="filter"
                                                 x-transition:leave="transition ease-in duration-100"
@@ -108,7 +108,7 @@
                                                 id="name" name="name" class="p-2"
                                                 placeholder="Nama Mahasiswa" />
                                             <div x-show="isOpen()"
-                                                class="absolute shadow-lg bg-white dark:bg-darker top-100 z-40 w-full left-0 top-11 rounded max-h-[150px] overflow-y-auto">
+                                                class="absolute shadow-lg bg-white dark:bg-darker top-full mt-1 z-40 w-full left-0 rounded max-h-[150px] overflow-y-auto">
                                                 <div class="flex flex-col w-full">
                                                     <template x-for="(option, index) in filteredOptions()"
                                                         :key="index">

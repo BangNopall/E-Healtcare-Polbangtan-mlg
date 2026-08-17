@@ -36,9 +36,7 @@
                         <x-input-label class="mb-2" for="role">Role</x-input-label>
                         <select name="role" id="role" class="block bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 w-full dark:bg-darker dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
                             <option value="Admin">Admin</option>
-                            <option value="Dokter">Dokter</option>
                             <option value="Psikolog">Psikolog</option>
-                            <option value="Perawat">Perawat</option>
                         </select>
                     </div>
                 </div>

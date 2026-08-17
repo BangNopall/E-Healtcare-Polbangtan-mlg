@@ -5,8 +5,8 @@
         <form method="POST" action="{{ route('login') }}" class="space-y-6">
             @csrf
             <div class="w-full space-y-1">
-                <x-auth.input-auth type="email" name="email" placeholder="Alamat Email" :value="old('email')" autofocus />
-                <x-input-error :messages="$errors->get('email')" />
+                <x-auth.input-auth type="text" name="login" placeholder="Alamat Email atau NIM" :value="old('login')" autofocus />
+                <x-input-error :messages="$errors->get('login')" />
             </div>
             <div class="w-full space-y-1">
                 <x-auth.input-auth type="password" name="password" placeholder="Kata Sandi" />

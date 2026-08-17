@@ -16,11 +16,16 @@ class MahasiswaSeeder extends Seeder
     {
         // create data user .sql namun tetap melewati model agar ter protect oleh aturan database nya
         // Read the SQL file
-        $path = database_path('sql/datauser.sql');
-        $sql = File::get($path);
-
-        // Parse and insert data
-        $this->insertDataFromSql($sql);
+        $path = database_path('sql/datauser-lite.sql');
+        
+        if (File::exists($path)) {
+            $sql = File::get($path);
+            // Parse and insert data
+            $this->insertDataFromSql($sql);
+            $this->command->info('Data Mahasiswa berhasil disemai dari datauser-lite.sql!');
+        } else {
+            $this->command->error('File datauser-lite.sql tidak ditemukan!');
+        }
     }
 
     protected function insertDataFromSql($sql)
@@ -48,14 +53,27 @@ class MahasiswaSeeder extends Seeder
                 // Combine columns and values into an associative array
                 $data = array_combine($columns, $values);
 
-                // Debugging: Uncomment these lines if you need to debug again
-                // dd($statement, $matches, $columns, $values, $data);
+                $prodiId = null;
+                if (isset($data['prodi_id'])) {
+                    $prodiId = $data['prodi_id'];
+                    unset($data['prodi_id']);
+                }
 
                 // Create user using the model to trigger events
-                User::create($data);
+                $user = User::create($data);
+
+                // Create CDMI record if we have prodi_id
+                if ($prodiId !== null) {
+                    \App\Models\CDMI::create([
+                        'user_id' => $user->id,
+                        'nim' => $user->nim,
+                        'prodi_id' => $prodiId,
+                        'blok_id' => 1, // Default blok
+                        'no_ruangan' => 'Belum Diisi',
+                    ]);
+                }
             } else {
-                // Debugging: Uncomment these lines if you need to debug non-matching statements
-                dd('No match:', $statement);
+                $this->command->warn('No match: ' . $statement);
             }
         }
     }

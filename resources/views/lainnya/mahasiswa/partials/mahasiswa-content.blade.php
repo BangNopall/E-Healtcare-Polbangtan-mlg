@@ -7,19 +7,23 @@
     <form method="post" action="{{ route('profile.update-cdmi', $user->id) }}" class="mt-6 space-y-6">
         @csrf
         @method('patch')
+        @php
+            $hasNim = !empty($user->nim);
+            $hasProdi = isset($cdmi) && !empty($cdmi->prodi_id);
+        @endphp
         <div>
             <x-input-label for="nim" :value="'Nomor Induk Mahasiswa'" />
-            <x-input-text id="nim" type="number" name="nim" class="mt-2 block w-full" :value="old('nim', isset($cdmi) ? $cdmi->nim : '')" required
-             placeholder="151231xxxxxx" />
+            <x-input-text id="nim" type="text" name="nim" class="mt-2 block w-full {{ $hasNim ? '!text-gray-400 cursor-not-allowed' : '' }}" :value="old('nim', isset($user) ? $user->nim : '')" required
+             placeholder="151231xxxxxx" :readonly="$hasNim" />
             <x-input-error class="mt-1" :messages="$errors->get('nim')" />
         </div>
 
         @isset($prodis)
             <div>
                 <x-input-label for="prodi_id" :value="'Program Studi'" />
-                <select id="prodi_id" name="prodi_id"
-                    class="block w-full mt-2 items-center text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-darker dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-                    <option hidden selected>Pilih</option>
+                <select id="prodi_id" name="prodi_id" {{ $hasProdi ? 'disabled' : '' }}
+                    class="block w-full mt-2 items-center text-sm text-gray-900 border border-gray-300 rounded-lg {{ $hasProdi ? 'bg-gray-200 cursor-not-allowed dark:bg-gray-700 text-gray-400 dark:!text-gray-400' : 'bg-gray-50' }} focus:ring-blue-500 focus:border-blue-500 dark:bg-darker dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                    <option hidden>Pilih</option>
                     @foreach ($prodis as $prodi)
                         <option value="{{ $prodi->id }}"
                             {{ old('prodi_id', isset($cdmi) ? $cdmi->prodi_id : '') == $prodi->id ? 'selected' : '' }}>
@@ -27,6 +31,9 @@
                         </option>
                     @endforeach
                 </select>
+                @if ($hasProdi)
+                    <input type="hidden" name="prodi_id" value="{{ isset($cdmi) ? $cdmi->prodi_id : '' }}">
+                @endif
                 <x-input-error class="mt-1" :messages="$errors->get('prodi_id')" />
             </div>
         @endisset

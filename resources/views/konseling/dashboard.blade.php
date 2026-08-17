@@ -17,10 +17,10 @@
             <div class="bg-white dark:bg-darker p-4 rounded-lg">
                 <div class="text-sm mb-3 flex items-center">
                     <span class="icon-[mdi--doctor] me-2"></span>
-                    Total Psikiater
+                    Total Psikolog
                 </div>
-                <span class="text-xl font-semibold">{{ $psikiater }}</span>
-                <div class="mt-3 text-xs text-yellow-400">Psikiater terdaftar.</div>
+                <span class="text-xl font-semibold">{{ $psikolog }}</span>
+                <div class="mt-3 text-xs text-yellow-400">Psikolog terdaftar.</div>
             </div>
             <div class="bg-white dark:bg-darker p-4 rounded-lg">
                 <div class="flex justify-center items-center">

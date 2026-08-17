@@ -34,7 +34,7 @@ class KaryawanManagementController extends Controller
             $request->validate([
                 'name' => ['required', 'string', 'max:255'],
                 'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-                // 'role' => ['required', 'string', Rule::in(['Mahasiswa', 'Dokter', 'Psikiater', 'Karyawan', 'Admin'])],
+                // 'role' => ['required', 'string', Rule::in(['Mahasiswa', 'Psikolog', 'Karyawan', 'Admin'])],
             ]);
 
             $email = $request->email;

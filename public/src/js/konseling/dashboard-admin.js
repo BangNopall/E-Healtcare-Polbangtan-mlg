@@ -1,9 +1,7 @@
 (async function () {
     // Fetch data from API
-    const response = await fetch("/get_konseling");
+    const response = await fetch("/api/get_konseling");
     const apiData = await response.json();
-
-    console.log(apiData);
 
     new Chart(document.getElementById("konseling"), {
         type: "doughnut",

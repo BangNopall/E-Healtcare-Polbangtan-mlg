@@ -23,10 +23,10 @@
             <!-- Brand -->
             <div class="flex flex-row gap-2 items-center">
                 <a href="https://asramapolbangtan-mlg.com">
-                    <img src="{{ asset('img/logo-200.png') }}" class="w-[90px] rounded-full shadow-lg border-2 border-blue-700" alt="">
+                    <img src="{{ asset('img/logo-200.png') }}" class="w-24 rounded-full shadow-lg border-2 border-blue-700" alt="">
                 </a>
                 <a href="https://kesehatan.asramapolbangtan-mlg.com">
-                    <img src="{{ asset('img/logo-klinik.jpeg') }}" class="w-[90px] rounded-full shadow-lg border-2 border-blue-700" alt="">
+                    <img src="{{ asset('img/logo-klinik.jpeg') }}" class="w-24 rounded-full shadow-lg border-2 border-blue-700" alt="">
                 </a>
             </div>
             <a href="/"

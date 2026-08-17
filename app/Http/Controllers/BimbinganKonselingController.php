@@ -13,7 +13,7 @@ use Illuminate\Support\Str;
 use App\Models\DataPsikolog;
 use Illuminate\Http\Request;
 use App\Models\BimbinganSenso;
-use App\Models\RequestRujukan;
+
 use App\Models\JadwalBimbingan;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Validation\Rule;
@@ -177,7 +177,9 @@ class BimbinganKonselingController extends Controller
 
     public function daftarsiswaAsuh(Request $request, $senso_id)
     {
-        // dd($request->all(), $senso_id);
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+        ]);
 
         $senso = User::find($senso_id);
 
@@ -191,14 +193,14 @@ class BimbinganKonselingController extends Controller
             return back()->with('error', 'Data Mahasiswa tidak ditemukan');
         }
 
+        $existing = BimbinganSenso::where('siswa_id', $siswa->id)->first();
+        if ($existing) {
+            return back()->with('error', 'Mahasiswa ini sudah terdaftar pada Senso lain');
+        }
+
         // Proses Mendaftarkan siswa Asuh Senso
 
         try {
-            $request->validate([
-                'name' => 'required|exists:users,name',
-                'user_id' => 'required|exists:users,id',
-            ]);
-
             DB::beginTransaction();
 
             $bimbinganSenso = BimbinganSenso::create([
@@ -619,19 +621,7 @@ class BimbinganKonselingController extends Controller
             $dataPsikolog = DataPsikolog::findOrFail($id);
             // $dataPsikolog->delete();
 
-            // check apakah sudah request surat atau belum
-            $requestRujukan = RequestRujukan::where('data_id', $dataPsikolog->id)->first();
-            if (!$requestRujukan) {
-                $dataPsikolog->delete();
-            } else {
-                // jika status nya masih submitted, maka masih bisa dihapus
-                if ($requestRujukan->status == 'submitted') {
-                    $requestRujukan->delete();
-                    $dataPsikolog->delete();
-                } else {
-                    return back()->with('error', 'Data Psikolog tidak bisa dihapus karena sudah request surat rujukan');
-                }
-            }
+            $dataPsikolog->delete();
             DB::commit();
             return redirect()->back()->with('success', 'Data Psikolog baru berhasil dihapus');
         } catch (\Exception $th) {
@@ -681,59 +671,6 @@ class BimbinganKonselingController extends Controller
     }
 
 
-    public function requestSuratRujukan($id)
-    {
-        try {
-            $dataPsikolog = DataPsikolog::findOrFail($id);
-            $data['dataPsikolog'] = $dataPsikolog;
-            $user = $dataPsikolog->user;
-            $data['user'] = $user;
-            if ($user->dmti == 1) {
-                $dmti = DMTI::where('user_id', $user->id)->first();
-                if ($dmti) {
-                    $data['dmti'] = $dmti;
-                }
-            }
-            if ($user->cdmi == 1) {
-                $cdmi = CDMI::where('user_id', $user->id)->first();
-                if ($cdmi) {
-                    $data['cdmi'] = $cdmi;
-                }
-            }
-            $data['prodis'] = Prodi::all();
-            $data['bloks'] = Blok::all();
-
-
-            // cari request sebelumnya dahulu 
-            $requestRujukan = RequestRujukan::where('data_id', $dataPsikolog->id)->first();
-
-            if ($requestRujukan) {
-                return back()->with('error', 'Data Request Surat Rujukan sudah pernah dibuat');
-            }
-
-            DB::beginTransaction();
-
-            $requestRujukan = RequestRujukan::create([
-                'data_id' => $dataPsikolog->id,
-                'status' => 'submitted',
-            ]);
-
-            DB::commit();
-
-            return back()->with('success', 'Data Request Surat Rujukan baru berhasil dibuat');
-        } catch (\Exception $th) {
-            DB::rollBack();
-
-            if ($th instanceof ModelNotFoundException) {
-                return back()->with('error', 'Data Request Surat Rujukan tidak ditemukan');
-            } elseif ($th instanceof ValidationException) {
-                return back()->withErrors($th->errors())->withInput()->with('error', 'Data Request Surat Rujukan gagal disimpan');
-            } else {
-                Log::error('Data Request Surat Rujukan gagal disimpan : ' . $th->getMessage());
-                return back()->with('error', 'Data Request Surat Rujukan gagal disimpan');
-            }
-        }
-    }
 
     public function filterKonsultasi(Request $request)
     {
@@ -797,57 +734,6 @@ class BimbinganKonselingController extends Controller
         }
     }
 
-    public function hasilSuratRujukan()
-    {
-        try {
-            $dataRequest = RequestRujukan::where('status', 'completed')->orderBy('created_at', 'desc')->with(['dataPsikolog.user.getCDMI', 'suratRujukan'])->paginate(20);
-
-            $data['request'] = $dataRequest;
-
-            return view('konseling.hasil-surat-rujukan', $data);
-        } catch (\Throwable $th) {
-            Log::error('Gagal menampilkan request rujukan: ' . $th->getMessage());
-            return back()->with('error', 'Gagal menampilkan request rujukan');
-        }
-    }
-
-    public function detailSuratRujukan($requestId)
-    {
-        try {
-            $requestSurat = RequestRujukan::with(['dataPsikolog.user.getCDMI', 'suratRujukan'])->find($requestId);
-            if (!$requestSurat) {
-                return back()->with('error', 'Request Rujukan not found');
-            }
-            $data['requestSurat'] = $requestSurat;
-            $data['dataPsikolog'] = $requestSurat->dataPsikolog;
-            $surat = $requestSurat->suratRujukan;
-            $data['surat'] = $surat;
-            $data['user'] = User::find($surat->pasien_id);
-
-            if ($data['user']->dmti == 1) {
-                $dmti = DMTI::where('user_id', $data['user']->id)->first();
-                if ($dmti) {
-                    $data['dmti'] = $dmti;
-                }
-            }
-            if ($data['user']->cdmi == 1) {
-                $cdmi = CDMI::where('user_id', $data['user']->id)->first();
-                if ($cdmi) {
-                    $data['cdmi'] = $cdmi;
-                }
-            }
-            $data['prodis'] = Prodi::all();
-            $data['bloks'] = Blok::all();
-
-            return view('kesehatan.form.laporan-keterangan-rujukan.hasil-surat', $data);
-        } catch (\Exception $th) {
-            if ($th instanceof ModelNotFoundException) {
-                return back()->with('error', 'Data Psikolog tidak ditemukan');
-            } else {
-                return back()->with('error', 'Gagal menampilkan detail Psikolog');
-            }
-        }
-    }
 
     public function laporanKonseling()
     {

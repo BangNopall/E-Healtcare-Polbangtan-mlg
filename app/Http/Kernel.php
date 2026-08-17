@@ -39,7 +39,7 @@ class Kernel extends HttpKernel
         ],
 
         'api' => [
-            // \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
@@ -67,6 +67,7 @@ class Kernel extends HttpKernel
         'role' => \App\Http\Middleware\EnsureUserHasRole::class,
         'cdmi' => \App\Http\Middleware\EnsureUserHasCDMI::class,
         'dmti' => \App\Http\Middleware\EnsureUserHasDMTI::class,
+        'profile.complete' => \App\Http\Middleware\EnsureProfileCompleted::class,
     ];
 }
 

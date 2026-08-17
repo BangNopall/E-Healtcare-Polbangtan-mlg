@@ -40,15 +40,13 @@ class KonselingUserController extends Controller
             $data['senso'] = $senso;
 
             // jika hari ini ada jadwal bimbingan
-            if ($jadwal) {
+            if ($jadwal && $senso) {
                 // cek apakah senso nya sudah absen atau belum
                 $presensi = $jadwal->presensi()->where('senso_id', $senso->senso_id)->first();
 
-                // dd($presensi->status);
-
-                if ($presensi->status === 'Hadir') {
+                if ($presensi && $presensi->status === 'Hadir') {
                     // jika sudah absen
-                    $data['linkFeedbackTerbaru'] = Route('user.konseling.form-feedback', [
+                    $data['linkFeedbackTerbaru'] = route('user.konseling.form-feedback', [
                         'id' => $senso->senso_id,
                         'token' => $jadwal->token
                     ]);
@@ -103,6 +101,14 @@ class KonselingUserController extends Controller
             $data = $validator->validated();
 
             DB::beginTransaction();
+
+            $existingFeedback = FeedbackBimbingan::where('jadwal_id', $data['jadwal_id'])
+                ->where('siswa_id', Auth::id())
+                ->first();
+
+            if ($existingFeedback) {
+                return back()->with('error', 'Anda sudah mengisi feedback untuk jadwal ini');
+            }
 
             $feedback = new FeedbackBimbingan();
             $feedback->senso_id = $data['senso_id'];

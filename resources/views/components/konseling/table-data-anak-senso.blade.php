@@ -6,7 +6,7 @@
         </td>
         <td class="px-4 py-2">
             @if ($anak->siswa->cdmi_complete === 1)
-                {{ $anak->siswa->getCDMI->nim }}
+                {{ $anak->siswa->nim }}
             @else
                 Data tidak ditemukan
             @endif

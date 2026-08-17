@@ -11,7 +11,7 @@
                 <img class="rounded-lg w-full bg-gray-500 dark:bg-dark" src="{{ asset('img/qr-test-aja.svg') }}"
                     alt="Kode QR">
                 <div class="absolute inset-0 flex items-center justify-center">
-                    <div class="absolute inset-0 bg-black bg-opacity-50 rounded-lg"></div>
+                    <div class="absolute inset-0 bg-black/50 rounded-lg"></div>
                     <div class="relative z-10">
                         <x-button class="py-2 px-4 text-lg md:text-xl" type="button"
                             x-on:click.prevent="$dispatch('open-modal', 'qr');">Buka</x-button>

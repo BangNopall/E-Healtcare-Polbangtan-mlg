@@ -115,7 +115,7 @@
                             <td>{{ $ks->created_at->format('F Y') }}</td>
                             <td>
                                 @if ($ks->user->cdmi_complete == 1)
-                                    {{ $ks->user->getCDMI->nim }}
+                                    {{ $ks->user->nim }}
                                 @else
                                     -
                                 @endif
