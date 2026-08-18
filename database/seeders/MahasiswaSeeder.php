@@ -16,15 +16,15 @@ class MahasiswaSeeder extends Seeder
     {
         // create data user .sql namun tetap melewati model agar ter protect oleh aturan database nya
         // Read the SQL file
-        $path = database_path('sql/datauser-lite.sql');
+        $path = database_path('sql/datauser.sql');
         
         if (File::exists($path)) {
             $sql = File::get($path);
             // Parse and insert data
             $this->insertDataFromSql($sql);
-            $this->command->info('Data Mahasiswa berhasil disemai dari datauser-lite.sql!');
+            $this->command->info('Data Mahasiswa berhasil disemai dari datauser.sql!');
         } else {
-            $this->command->error('File datauser-lite.sql tidak ditemukan!');
+            $this->command->error('File datauser.sql tidak ditemukan!');
         }
     }
 
