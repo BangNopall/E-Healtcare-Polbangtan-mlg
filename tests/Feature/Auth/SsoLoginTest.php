@@ -106,3 +106,76 @@ test('login dan redirect ke dashboard konseling saat semua validasi lolos', func
     $response->assertRedirect(route('user.konseling.dashboard'));
     $this->assertDatabaseCount('sso_tickets', 1);
 });
+
+function buildSignedSsoV2Url(array $overrides = []): string
+{
+    $params = array_merge([
+        'identifier' => 'admin@polbangtanmalang.ac.id',
+        'role' => 'admin',
+        'expires_at' => now()->addMinutes(5)->timestamp,
+        'nonce' => (string) Str::uuid(),
+    ], $overrides);
+
+    if (! array_key_exists('signature', $overrides)) {
+        $canonical = "{$params['identifier']}|{$params['role']}|{$params['expires_at']}|{$params['nonce']}";
+        $params['signature'] = hash_hmac('sha256', $canonical, config('sso.secret'));
+    } else {
+        $params['signature'] = $overrides['signature'];
+    }
+
+    return '/sso?'.http_build_query($params);
+}
+
+test('admin sso login dan redirect ke dashboard konseling admin', function () {
+    $admin = User::factory()->create([
+        'name' => 'Admin Test',
+        'email' => 'admin@polbangtanmalang.ac.id',
+        'role' => 'Admin',
+    ]);
+
+    $url = buildSignedSsoV2Url([
+        'identifier' => $admin->email,
+        'role' => 'admin',
+    ]);
+
+    $response = $this->get($url);
+
+    $this->assertAuthenticatedAs($admin);
+    $response->assertRedirect(route('konseling.dashboard'));
+    $this->assertDatabaseCount('sso_tickets', 1);
+    expect(session('sso_readonly'))->toBeNull();
+});
+
+test('pejabat sso login sebagai admin dengan flag readonly dan redirect ke dashboard konseling', function () {
+    $admin = User::factory()->create([
+        'name' => 'Admin Klinik',
+        'email' => 'admin@polbangtanmalang.ac.id',
+        'role' => 'Admin',
+    ]);
+
+    $url = buildSignedSsoV2Url([
+        'identifier' => 'kaprodi@polbangtanmalang.ac.id',
+        'role' => 'pejabat',
+        'name' => 'Bapak Kaprodi',
+    ]);
+
+    $response = $this->get($url);
+
+    $this->assertAuthenticatedAs($admin);
+    $response->assertRedirect(route('konseling.dashboard'));
+    $this->assertDatabaseCount('sso_tickets', 1);
+    expect(session('sso_readonly'))->toBeTrue();
+    expect(session('sso_pejabat_name'))->toBe('Bapak Kaprodi');
+    expect(session('sso_pejabat_email'))->toBe('kaprodi@polbangtanmalang.ac.id');
+});
+
+test('tolak jika signature v2 tidak cocok', function () {
+    $url = buildSignedSsoV2Url([
+        'signature' => 'invalid-signature-v2',
+    ]);
+
+    $response = $this->get($url);
+
+    $response->assertForbidden();
+    $this->assertGuest();
+});

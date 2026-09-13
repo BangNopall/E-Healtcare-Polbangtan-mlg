@@ -64,6 +64,23 @@
             </div>
         </nav>
     </div>
+
+    @if (session('sso_readonly'))
+        <div class="bg-amber-600 text-white px-4 py-2 flex items-center justify-between text-xs sm:text-sm font-medium shadow-inner">
+            <div class="flex items-center space-x-2">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-extrabold bg-amber-950 text-amber-200 uppercase tracking-wide">
+                    READ-ONLY
+                </span>
+                <span>
+                    <strong>Mode Akses Pejabat:</strong> Anda masuk sebagai <em>{{ session('sso_pejabat_name', 'Pejabat') }}</em>. Akses sistem ini berstatus hanya-baca (penambahan, perubahan, dan penghapusan data dinonaktifkan).
+                </span>
+            </div>
+            <div class="hidden md:block text-amber-200 text-xs">
+                E-Klinik Polbangtan Malang
+            </div>
+        </div>
+    @endif
+
     <!-- Mobile main manu -->
     <div class="border-b lg:hidden dark:border-blue-800" x-show="isMobileMainMenuOpen"
         @click.away="isMobileMainMenuOpen = false">

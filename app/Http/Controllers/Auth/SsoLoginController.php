@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\CDMI;
 use App\Models\SsoTicket;
 use App\Models\User;
 use Illuminate\Database\QueryException;
@@ -26,13 +27,17 @@ class SsoLoginController extends Controller
     public function receive(Request $request): RedirectResponse
     {
         $request->validate([
-            'nim' => ['required', 'string'],
             'expires_at' => ['required', 'integer'],
             'nonce' => ['required', 'string'],
             'signature' => ['required', 'string'],
         ]);
 
-        if (! $this->hasValidSignature($request)) {
+        $identifier = (string) ($request->input('identifier') ?? $request->input('nim'));
+        if (blank($identifier)) {
+            abort(403);
+        }
+
+        if (! $this->hasValidSignature($request, $identifier)) {
             abort(403);
         }
 
@@ -40,19 +45,61 @@ class SsoLoginController extends Controller
             abort(403);
         }
 
-        if (! $this->consumeNonce($request)) {
+        if (! $this->consumeNonce($request, $identifier)) {
             abort(403);
         }
 
-        $user = User::where('nim', $request->string('nim'))->first();
+        $role = (string) $request->input('role');
+
+        // 1. Handoff Admin: Login sebagai Admin dengan hak akses penuh (read-write)
+        if ($role === 'admin') {
+            $admin = User::where('email', $identifier)->where('role', 'Admin')->first()
+                ?? User::where('role', 'Admin')->first();
+
+            if (! $admin) {
+                Log::critical('SSO: Akun Admin tidak ditemukan di E-Klinik untuk identitas: '.$identifier);
+                abort(403);
+            }
+
+            $request->session()->forget(['sso_readonly', 'sso_role', 'sso_pejabat_name', 'sso_pejabat_email']);
+            Auth::login($admin);
+            $request->session()->regenerate();
+
+            return redirect()->route('konseling.dashboard');
+        }
+
+        // 2. Handoff Pejabat: Login sebagai Admin namun dengan flag READ-ONLY di session
+        if ($role === 'pejabat') {
+            $admin = User::where('role', 'Admin')->first();
+
+            if (! $admin) {
+                Log::critical('SSO: Akun Admin tidak ditemukan di E-Klinik untuk handoff Pejabat: '.$identifier);
+                abort(403);
+            }
+
+            Auth::login($admin);
+            $request->session()->regenerate();
+
+            session([
+                'sso_readonly' => true,
+                'sso_role' => 'Pejabat',
+                'sso_pejabat_name' => $request->input('name') ?? 'Pejabat Polbangtan',
+                'sso_pejabat_email' => $identifier,
+            ]);
+
+            return redirect()->route('konseling.dashboard');
+        }
+
+        // 3. Handoff Mahasiswa: Cari berdasarkan NIM, login, redirect ke dashboard konseling mahasiswa
+        $user = User::where('nim', $identifier)->first();
 
         if (! $user) {
             // Fallback: cek tabel CDMI jika kolom nim di users masih null
-            $cdmi = \App\Models\CDMI::where('nim', $request->string('nim'))->first();
+            $cdmi = CDMI::where('nim', $identifier)->first();
             if ($cdmi && $cdmi->user_id) {
                 $user = User::find($cdmi->user_id);
                 if ($user) {
-                    $user->nim = $request->string('nim');
+                    $user->nim = $identifier;
                     $user->save();
                 }
             }
@@ -62,10 +109,11 @@ class SsoLoginController extends Controller
             // JANGAN buat user baru — SSO ini hanya menerima handoff untuk
             // mahasiswa yang datanya sudah ada di sistem ini (via sinkronisasi
             // CDMI). Nim tak ditemukan dicatat untuk audit/investigasi.
-            Log::warning('SSO: nim tidak ditemukan - '.$request->string('nim'));
+            Log::warning('SSO: nim tidak ditemukan - '.$identifier);
             abort(403);
         }
 
+        $request->session()->forget(['sso_readonly', 'sso_role', 'sso_pejabat_name', 'sso_pejabat_email']);
         Auth::login($user);
         $request->session()->regenerate();
 
@@ -88,12 +136,12 @@ class SsoLoginController extends Controller
      * @return bool true jika nonce baru (berhasil disimpan), false jika
      *              nonce sudah pernah dipakai sebelumnya.
      */
-    private function consumeNonce(Request $request): bool
+    private function consumeNonce(Request $request, string $identifier): bool
     {
         try {
             SsoTicket::create([
                 'nonce' => $request->string('nonce'),
-                'nim' => $request->string('nim'),
+                'nim' => $identifier,
                 'used_at' => now(),
             ]);
 
@@ -112,17 +160,37 @@ class SsoLoginController extends Controller
      * Bandingkan signature memakai hash_equals (timing-safe) — WAJIB, tidak
      * boleh diganti operator "===" karena rentan timing attack.
      */
-    private function hasValidSignature(Request $request): bool
+    private function hasValidSignature(Request $request, string $identifier): bool
     {
-        $canonical = sprintf(
-            '%s|%s|%s',
-            $request->string('nim'),
-            $request->integer('expires_at'),
-            $request->string('nonce')
-        );
+        $secret = (string) config('sso.secret');
+        $role = (string) $request->input('role');
+        $expiresAt = $request->integer('expires_at');
+        $nonce = (string) $request->input('nonce');
+        $signature = (string) $request->input('signature');
 
-        $expectedSignature = hash_hmac('sha256', $canonical, (string) config('sso.secret'));
+        // Signature v2 untuk Admin & Pejabat: "{identifier}|{role}|{expires_at}|{nonce}"
+        if (in_array($role, ['admin', 'pejabat'])) {
+            $canonical = sprintf('%s|%s|%s|%s', $identifier, $role, $expiresAt, $nonce);
+            $expectedSignature = hash_hmac('sha256', $canonical, $secret);
 
-        return hash_equals($expectedSignature, (string) $request->string('signature'));
+            return hash_equals($expectedSignature, $signature);
+        }
+
+        // Signature v1 Legacy (Mahasiswa): "{nim}|{expires_at}|{nonce}"
+        $canonicalV1 = sprintf('%s|%s|%s', $identifier, $expiresAt, $nonce);
+        $expectedV1 = hash_hmac('sha256', $canonicalV1, $secret);
+        if (hash_equals($expectedV1, $signature)) {
+            return true;
+        }
+
+        // Signature v2 Mahasiswa (jika menyertakan role): "{identifier}|mahasiswa|{expires_at}|{nonce}"
+        if ($role === 'mahasiswa') {
+            $canonicalV2 = sprintf('%s|%s|%s|%s', $identifier, $role, $expiresAt, $nonce);
+            $expectedV2 = hash_hmac('sha256', $canonicalV2, $secret);
+
+            return hash_equals($expectedV2, $signature);
+        }
+
+        return false;
     }
 }

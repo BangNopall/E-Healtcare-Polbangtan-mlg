@@ -18,13 +18,13 @@ class UserSeeder extends Seeder
     {
         User::create([
             'name' => 'Admin Asrama Polbangtan',
-            'email' => 'admin@asramapolbangtan-mlg.com',
+            'email' => 'admin@polbangtanmalang.ac.id',
             'password' => bcrypt('password'),
             'role' => 'Admin',
         ]);
         User::create([
             'name' => 'Developer Asrama Polbangtan',
-            'email' => 'developer@asramapolbangtan-mlg.com',
+            'email' => 'developer@polbangtanmalang.ac.id',
             'password' => bcrypt('password'),
             'role' => 'Admin',
         ]);

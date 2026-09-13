@@ -1,0 +1,10 @@
+[21:25:29 2026-09-13] FETCHING Version 2.45.0
+[21:25:29 2026-09-13] DOWNLOADING https://github.com/spicetify/cli/releases/download/v2.45.0/spicetify-2.45.0-darwin-arm64.tar.gz
+[21:25:32 2026-09-13] EXTRACTING /Users/noxval/.spicetify/spicetify.tar.gz
+[21:25:32 2026-09-13] SETTING EXECUTABLE PERMISSIONS TO /Users/noxval/.spicetify/spicetify
+[21:25:32 2026-09-13] REMOVING /Users/noxval/.spicetify/spicetify.tar.gz
+[21:25:32 2026-09-13] spicetify path already set in /Users/noxval/.zshrc, continuing...
+[21:25:32 2026-09-13] spicetify v2.45.0 was installed successfully to /Users/noxval/.spicetify
+[21:25:32 2026-09-13] Open a new terminal or reload your shell profile to use spicetify:
+[21:25:32 2026-09-13]   source "/Users/noxval/.zshrc"
+[21:25:32 2026-09-13] Then run 'spicetify --help' to get started
