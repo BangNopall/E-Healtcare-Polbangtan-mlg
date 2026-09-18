@@ -21,3 +21,6 @@ CLAUDE.md
 database/sql
 .claude
 CLAUDE.md
+package-lock.json
+composer.lock
+
