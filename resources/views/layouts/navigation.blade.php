@@ -66,7 +66,7 @@
     </div>
 
     @if (session('sso_readonly'))
-        <div class="bg-amber-600 text-white px-4 py-2 flex items-center justify-between text-xs sm:text-sm font-medium shadow-inner">
+        <div class="bg-amber-600 text-white px-4 py-2 flex flex-col sm:flex-row items-center justify-between text-xs sm:text-sm font-medium shadow-inner gap-2">
             <div class="flex items-center space-x-2">
                 <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-extrabold bg-amber-950 text-amber-200 uppercase tracking-wide">
                     READ-ONLY
@@ -75,8 +75,14 @@
                     <strong>Mode Akses Pejabat:</strong> Anda masuk sebagai <em>{{ session('sso_pejabat_name', 'Pejabat') }}</em>. Akses sistem ini berstatus hanya-baca (penambahan, perubahan, dan penghapusan data dinonaktifkan).
                 </span>
             </div>
-            <div class="hidden md:block text-amber-200 text-xs">
-                E-Klinik Polbangtan Malang
+            <div class="flex items-center space-x-3 shrink-0">
+                <a href="{{ config('sso.management_url', 'http://localhost:8000') }}"
+                    class="inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded bg-amber-800 text-white hover:bg-amber-900 transition-colors shadow-sm">
+                    <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Kembali ke Asrama
+                </a>
             </div>
         </div>
     @endif
@@ -147,14 +153,16 @@
                                 class="{{ Request::is('konseling/jadwal-bimbingan*') ? 'text-gray-700 dark:text-light' : 'text-gray-400 hover:text-gray-700 dark:text-gray-400' }} block p-2 text-sm transition-colors duration-200 rounded-md  dark:hover:text-light">
                                 Jadwal
                             </a>
-                            <a href="/konseling/kamera-bimbingan" role="menuitem"
-                                class="{{ Request::is('konseling/kamera-bimbingan*') ? 'text-gray-700 dark:text-light' : 'text-gray-400 hover:text-gray-700 dark:text-gray-400' }} block p-2 text-sm transition-colors duration-200 rounded-md  dark:hover:text-light">
-                                Kamera Bimbingan
-                            </a>
-                            <a href="/konseling/kamera-konsultasi" role="menuitem"
-                                class="{{ Request::is('konseling/kamera-konsultas*') ? 'text-gray-700 dark:text-light' : 'text-gray-400 hover:text-gray-700 dark:text-gray-400' }} block p-2 text-sm transition-colors duration-200 rounded-md  dark:hover:text-light">
-                                Kamera Konsultasi
-                            </a>
+                            @if (!session('sso_readonly'))
+                                <a href="/konseling/kamera-bimbingan" role="menuitem"
+                                    class="{{ Request::is('konseling/kamera-bimbingan*') ? 'text-gray-700 dark:text-light' : 'text-gray-400 hover:text-gray-700 dark:text-gray-400' }} block p-2 text-sm transition-colors duration-200 rounded-md  dark:hover:text-light">
+                                    Kamera Bimbingan
+                                </a>
+                                <a href="/konseling/kamera-konsultasi" role="menuitem"
+                                    class="{{ Request::is('konseling/kamera-konsultas*') ? 'text-gray-700 dark:text-light' : 'text-gray-400 hover:text-gray-700 dark:text-gray-400' }} block p-2 text-sm transition-colors duration-200 rounded-md  dark:hover:text-light">
+                                    Kamera Konsultasi
+                                </a>
+                            @endif
                             <a href="/konseling/riwayat-feedback" role="menuitem"
                                 class="{{ Request::is('konseling/riwayat-feedback*') ? 'text-gray-700 dark:text-light' : 'text-gray-400 hover:text-gray-700 dark:text-gray-400' }} block p-2 text-sm transition-colors duration-200 rounded-md  dark:hover:text-light">
                                 Riwayat Feedback

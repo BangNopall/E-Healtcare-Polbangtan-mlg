@@ -73,44 +73,46 @@
                             
                         </div>
                     </div>
-                    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 shadow-md rounded">
+                    <div class="shadow-md rounded overflow-hidden">
                         <div
                             class="text-sm font-medium text-gray-900 uppercase bg-gray-100 p-2 dark:bg-dark dark:text-gray-100">
                             PRESENSI SENSUH HARI INI
                         </div>
-                        <tbody>
-                            <tr class="bg-white border-b dark:bg-darker dark:border-gray-700 whitespace-nowrap text-xs">
-                                <th scope="row" class="p-2">
-                                    IZIN
-                                </th>
-                                <td class="p-2 flex justify-end">
-                                    <span class="badge bg-orange-500 text-xs text-white p-1 rounded">
-                                        {{ $izin }} <small>Siswa</small>
-                                    </span>
-                                </td>
-                            </tr>
-                            <tr class="bg-white border-b dark:bg-darker dark:border-gray-700 whitespace-nowrap text-xs">
-                                <th scope="row" class="p-2">
-                                    SAKIT
-                                </th>
-                                <td class="p-2 flex justify-end">
-                                    <span class="badge bg-yellow-500 text-xs text-white p-1 rounded">
-                                        {{ $sakit }} <small>Siswa</small>
-                                    </span>
-                                </td>
-                            </tr>
-                            <tr class="bg-white border-b dark:bg-darker dark:border-gray-700 whitespace-nowrap text-xs">
-                                <th scope="row" class="p-2">
-                                    ALPHA
-                                </th>
-                                <td class="p-2 flex justify-end">
-                                    <span class="badge bg-red-500 text-xs text-white p-1 rounded">
-                                        {{ $alpha }} <small>Siswa</small>
-                                    </span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                            <tbody>
+                                <tr class="bg-white border-b dark:bg-darker dark:border-gray-700 whitespace-nowrap text-xs">
+                                    <th scope="row" class="p-2">
+                                        IZIN
+                                    </th>
+                                    <td class="p-2 flex justify-end">
+                                        <span class="badge bg-orange-500 text-xs text-white p-1 rounded">
+                                            {{ $izin }} <small>Siswa</small>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr class="bg-white border-b dark:bg-darker dark:border-gray-700 whitespace-nowrap text-xs">
+                                    <th scope="row" class="p-2">
+                                        SAKIT
+                                    </th>
+                                    <td class="p-2 flex justify-end">
+                                        <span class="badge bg-yellow-500 text-xs text-white p-1 rounded">
+                                            {{ $sakit }} <small>Siswa</small>
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr class="bg-white border-b dark:bg-darker dark:border-gray-700 whitespace-nowrap text-xs">
+                                    <th scope="row" class="p-2">
+                                        ALPHA
+                                    </th>
+                                    <td class="p-2 flex justify-end">
+                                        <span class="badge bg-red-500 text-xs text-white p-1 rounded">
+                                            {{ $alpha }} <small>Siswa</small>
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
                 <div class="bg-white dark:bg-darker p-4 rounded-lg">
                     <div class="flex items-center gap-2 text-lg font-medium">

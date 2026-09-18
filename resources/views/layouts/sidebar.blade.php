@@ -56,14 +56,16 @@
                                 class="{{ Request::is('konseling/jadwal-bimbingan*') ? 'text-gray-700 dark:text-light' : 'text-gray-400 hover:text-gray-700 dark:text-gray-400' }} block p-2 text-sm transition-colors duration-200 rounded-md  dark:hover:text-light">
                                 Jadwal
                             </a>
-                            <a href="/konseling/kamera-bimbingan" role="menuitem"
-                                class="{{ Request::is('konseling/kamera-bimbingan*') ? 'text-gray-700 dark:text-light' : 'text-gray-400 hover:text-gray-700 dark:text-gray-400' }} block p-2 text-sm transition-colors duration-200 rounded-md  dark:hover:text-light">
-                                Kamera Bimbingan
-                            </a>
-                            <a href="/konseling/kamera-konsultasi" role="menuitem"
-                                class="{{ Request::is('konseling/kamera-konsultas*') ? 'text-gray-700 dark:text-light' : 'text-gray-400 hover:text-gray-700 dark:text-gray-400' }} block p-2 text-sm transition-colors duration-200 rounded-md  dark:hover:text-light">
-                                Kamera Konsultasi
-                            </a>
+                            @if (!session('sso_readonly'))
+                                <a href="/konseling/kamera-bimbingan" role="menuitem"
+                                    class="{{ Request::is('konseling/kamera-bimbingan*') ? 'text-gray-700 dark:text-light' : 'text-gray-400 hover:text-gray-700 dark:text-gray-400' }} block p-2 text-sm transition-colors duration-200 rounded-md  dark:hover:text-light">
+                                    Kamera Bimbingan
+                                </a>
+                                <a href="/konseling/kamera-konsultasi" role="menuitem"
+                                    class="{{ Request::is('konseling/kamera-konsultas*') ? 'text-gray-700 dark:text-light' : 'text-gray-400 hover:text-gray-700 dark:text-gray-400' }} block p-2 text-sm transition-colors duration-200 rounded-md  dark:hover:text-light">
+                                    Kamera Konsultasi
+                                </a>
+                            @endif
                             <a href="/konseling/riwayat-feedback" role="menuitem"
                                 class="{{ Request::is('konseling/riwayat-feedback*') ? 'text-gray-700 dark:text-light' : 'text-gray-400 hover:text-gray-700 dark:text-gray-400' }} block p-2 text-sm transition-colors duration-200 rounded-md  dark:hover:text-light">
                                 Riwayat Feedback

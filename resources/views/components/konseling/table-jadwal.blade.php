@@ -11,13 +11,17 @@
             {{ \Carbon\Carbon::parse($jadwal->tanggal)->translatedFormat('d F Y') }}
         </td>
         <td class="px-4 py-2 text-center">
-            @include('konseling.partials.modals.hapus-jadwal')
-            <div class="items-center justify-center flex flex-row gap-3">
-                <button type="button" x-on:click.prevent="$dispatch('open-modal', 'hapus-{{ $jadwal->id }}');"
-                    class="font-medium text-red-600 dark:text-red-500">
-                    <span class="icon-[material-symbols--delete-outline] w-6 h-6"></span>
-                </button>
-            </div>
+            @if (!session('sso_readonly'))
+                @include('konseling.partials.modals.hapus-jadwal')
+                <div class="items-center justify-center flex flex-row gap-3">
+                    <button type="button" x-on:click.prevent="$dispatch('open-modal', 'hapus-{{ $jadwal->id }}');"
+                        class="font-medium text-red-600 dark:text-red-500">
+                        <span class="icon-[material-symbols--delete-outline] w-6 h-6"></span>
+                    </button>
+                </div>
+            @else
+                <span class="text-xs text-gray-400 italic">Read-Only</span>
+            @endif
         </td>
     </tr>
 @endforeach

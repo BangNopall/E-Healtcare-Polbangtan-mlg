@@ -25,4 +25,6 @@ return [
 
     'secret' => env('SSO_SHARED_SECRET'),
 
+    'management_url' => env('MANAGEMENT_URL', 'http://localhost:8000'),
+
 ];

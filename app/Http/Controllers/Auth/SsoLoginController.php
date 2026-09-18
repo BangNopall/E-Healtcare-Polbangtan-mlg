@@ -7,10 +7,10 @@ use App\Models\CDMI;
 use App\Models\SsoTicket;
 use App\Models\User;
 use Illuminate\Database\QueryException;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Symfony\Component\HttpFoundation\Response;
 
 class SsoLoginController extends Controller
 {
@@ -24,7 +24,7 @@ class SsoLoginController extends Controller
      * 4. Cari user berdasarkan nim (tidak membuat user baru)
      * 5. Auth::login + redirect ke dashboard konseling
      */
-    public function receive(Request $request): RedirectResponse
+    public function receive(Request $request): Response
     {
         $request->validate([
             'expires_at' => ['required', 'integer'],
@@ -34,19 +34,41 @@ class SsoLoginController extends Controller
 
         $identifier = (string) ($request->input('identifier') ?? $request->input('nim'));
         if (blank($identifier)) {
-            abort(403);
+            return $this->renderError(
+                title: 'Parameter SSO Tidak Lengkap',
+                message: 'Parameter identitas Single Sign-On tidak ditemukan pada permintaan. Silakan akses kembali melalui portal E-Management.',
+                errorCode: 'ERR_SSO_MISSING_PARAMETER'
+            );
         }
 
         if (! $this->hasValidSignature($request, $identifier)) {
-            abort(403);
+            return $this->renderError(
+                title: 'Validasi Keamanan Gagal',
+                message: 'Tanda tangan digital (HMAC) tidak valid atau tautan telah dimodifikasi. Akses ditolak untuk menjaga keamanan sistem.',
+                errorCode: 'ERR_SSO_INVALID_SIGNATURE',
+                identifier: $identifier,
+                role: $request->input('role')
+            );
         }
 
         if ($this->isExpired($request)) {
-            abort(403);
+            return $this->renderError(
+                title: 'Tiket Akses Kedaluwarsa',
+                message: 'Sesi Single Sign-On Anda telah berakhir (masa berlaku tiket adalah 60 detik). Silakan kembali ke aplikasi Asrama dan klik ulang tautan menu.',
+                errorCode: 'ERR_SSO_TICKET_EXPIRED',
+                identifier: $identifier,
+                role: $request->input('role')
+            );
         }
 
         if (! $this->consumeNonce($request, $identifier)) {
-            abort(403);
+            return $this->renderError(
+                title: 'Tiket Sudah Pernah Digunakan',
+                message: 'Tiket Single Sign-On ini sudah pernah digunakan sebelumnya. Setiap tiket hanya berlaku untuk satu kali masuk demi mencegah penyalahgunaan.',
+                errorCode: 'ERR_SSO_NONCE_REPLAYED',
+                identifier: $identifier,
+                role: $request->input('role')
+            );
         }
 
         $role = (string) $request->input('role');
@@ -58,7 +80,14 @@ class SsoLoginController extends Controller
 
             if (! $admin) {
                 Log::critical('SSO: Akun Admin tidak ditemukan di E-Klinik untuk identitas: '.$identifier);
-                abort(403);
+
+                return $this->renderError(
+                    title: 'Akun Administrator Belum Terdaftar',
+                    message: "Akun Administrator dengan email {$identifier} belum ditemukan pada sistem basis data E-Klinik. Silakan hubungi bagian pengelola sistem untuk inisialisasi akun admin klinik.",
+                    errorCode: 'ERR_SSO_ADMIN_NOT_FOUND',
+                    identifier: $identifier,
+                    role: 'Administrator'
+                );
             }
 
             $request->session()->forget(['sso_readonly', 'sso_role', 'sso_pejabat_name', 'sso_pejabat_email']);
@@ -74,7 +103,16 @@ class SsoLoginController extends Controller
 
             if (! $admin) {
                 Log::critical('SSO: Akun Admin tidak ditemukan di E-Klinik untuk handoff Pejabat: '.$identifier);
-                abort(403);
+
+                $pejabatName = $request->input('name') ?? 'Pejabat Polbangtan';
+
+                return $this->renderError(
+                    title: 'Layanan Pejabat Belum Dapat Diakses',
+                    message: "Akun induk Administrator untuk penautan akses Read-Only Pejabat ({$pejabatName}) belum tersedia di klinik. Silakan inisialisasi akun admin klinik terlebih dahulu.",
+                    errorCode: 'ERR_SSO_PEJABAT_HOST_NOT_FOUND',
+                    identifier: $identifier,
+                    role: 'Pejabat'
+                );
             }
 
             Auth::login($admin);
@@ -110,7 +148,14 @@ class SsoLoginController extends Controller
             // mahasiswa yang datanya sudah ada di sistem ini (via sinkronisasi
             // CDMI). Nim tak ditemukan dicatat untuk audit/investigasi.
             Log::warning('SSO: nim tidak ditemukan - '.$identifier);
-            abort(403);
+
+            return $this->renderError(
+                title: 'Data Mahasiswa Belum Terdaftar',
+                message: "Data mahasiswa dengan NIM {$identifier} belum terdaftar di basis data E-Klinik Polbangtan. Silakan pastikan data Anda telah disinkronkan oleh pengelola asrama/klinik.",
+                errorCode: 'ERR_SSO_STUDENT_NOT_FOUND',
+                identifier: $identifier,
+                role: 'Mahasiswa'
+            );
         }
 
         $request->session()->forget(['sso_readonly', 'sso_role', 'sso_pejabat_name', 'sso_pejabat_email']);
@@ -118,6 +163,25 @@ class SsoLoginController extends Controller
         $request->session()->regenerate();
 
         return redirect()->route('user.konseling.dashboard');
+    }
+
+    /**
+     * Render tampilan halaman error SSO yang terformat rapi dengan HTTP status 403.
+     */
+    private function renderError(
+        string $title,
+        string $message,
+        string $errorCode,
+        ?string $identifier = null,
+        ?string $role = null
+    ): Response {
+        return response()->view('auth.sso-error', [
+            'title' => $title,
+            'message' => $message,
+            'errorCode' => $errorCode,
+            'identifier' => $identifier,
+            'role' => $role,
+        ], 403);
     }
 
     /**

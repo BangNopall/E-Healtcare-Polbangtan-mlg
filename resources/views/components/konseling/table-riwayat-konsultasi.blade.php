@@ -17,15 +17,19 @@
             {{ \Carbon\Carbon::parse($dataPsikolog->tanggal)->isoFormat('dddd, D MMMM Y')}}
         </td>
         <td class="px-4 py-2 text-center">
-            @include('konseling.partials.modals.hapus-konsultasi')
+            @if (!session('sso_readonly'))
+                @include('konseling.partials.modals.hapus-konsultasi')
+            @endif
             <div class="items-center justify-center flex flex-row gap-3">
-                <a href="{{ route('konseling.detail-konsultasi', $dataPsikolog->id) }}" class="font-medium text-blue-600 dark:text-blue-500">
+                <a href="{{ route('konseling.detail-konsultasi', $dataPsikolog->id) }}" class="font-medium text-blue-600 dark:text-blue-500" title="Lihat Detail">
                     <span class="icon-[mdi--show-outline] w-5 h-5"></span>
                 </a>
-                <button type="button" x-on:click.prevent="$dispatch('open-modal', 'hapus-{{ $dataPsikolog->id }}');"
-                    class="font-medium text-red-600 dark:text-red-500">
-                    <span class="icon-[material-symbols--delete-outline] w-6 h-6"></span>
-                </button>
+                @if (!session('sso_readonly'))
+                    <button type="button" x-on:click.prevent="$dispatch('open-modal', 'hapus-{{ $dataPsikolog->id }}');"
+                        class="font-medium text-red-600 dark:text-red-500" title="Hapus Konsultasi">
+                        <span class="icon-[material-symbols--delete-outline] w-6 h-6"></span>
+                    </button>
+                @endif
             </div>
         </td>
     </tr>

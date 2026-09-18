@@ -24,15 +24,19 @@
                 }}
             </td>
             <td class="px-4 py-2 text-center">
-                @include('konseling.partials.modals.hapus-feedback')
+                @if (!session('sso_readonly'))
+                    @include('konseling.partials.modals.hapus-feedback')
+                @endif
                 <div class="items-center justify-center flex flex-row gap-3">
-                    <a href="{{ route('konseling.detail-feedback', $fb->id) }}" class="font-medium text-blue-600 dark:text-blue-500">
+                    <a href="{{ route('konseling.detail-feedback', $fb->id) }}" class="font-medium text-blue-600 dark:text-blue-500" title="Lihat Detail">
                         <span class="icon-[mdi--show-outline] w-5 h-5"></span>
                     </a>
-                    <button type="button" x-on:click.prevent="$dispatch('open-modal', 'hapus-{{ $fb->id }}');"
-                        class="font-medium text-red-600 dark:text-red-500">
-                        <span class="icon-[material-symbols--delete-outline] w-6 h-6"></span>
-                    </button>
+                    @if (!session('sso_readonly'))
+                        <button type="button" x-on:click.prevent="$dispatch('open-modal', 'hapus-{{ $fb->id }}');"
+                            class="font-medium text-red-600 dark:text-red-500" title="Hapus Feedback">
+                            <span class="icon-[material-symbols--delete-outline] w-6 h-6"></span>
+                        </button>
+                    @endif
                 </div>
             </td>
         </tr>

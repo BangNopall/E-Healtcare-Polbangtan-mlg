@@ -28,6 +28,7 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
 
         $request->session()->regenerate();
+        $request->session()->forget(['sso_readonly', 'sso_role', 'sso_pejabat_name', 'sso_pejabat_email']);
 
         return redirect()->intended(RouteServiceProvider::HOMEUSER);
     }

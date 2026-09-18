@@ -33,16 +33,19 @@ beforeEach(function () {
     config(['sso.secret' => 'testing-shared-secret']);
 });
 
-test('tolak jika signature tidak cocok', function () {
+test('tolak jika signature tidak cocok dan tampilkan view error sso', function () {
     $url = buildSignedSsoUrl(['signature' => 'signature-yang-salah-total']);
 
     $response = $this->get($url);
 
     $response->assertForbidden();
+    $response->assertViewIs('auth.sso-error');
+    $response->assertSee('Validasi Keamanan Gagal');
+    $response->assertSee('ERR_SSO_INVALID_SIGNATURE');
     $this->assertGuest();
 });
 
-test('tolak jika tiket sudah kedaluwarsa', function () {
+test('tolak jika tiket sudah kedaluwarsa dan tampilkan view error sso', function () {
     // Signature dihitung ulang untuk expires_at ini (via buildSignedSsoUrl),
     // jadi kegagalan murni karena waktu, bukan karena signature salah.
     $url = buildSignedSsoUrl(['expires_at' => now()->subMinute()->timestamp]);
@@ -50,16 +53,15 @@ test('tolak jika tiket sudah kedaluwarsa', function () {
     $response = $this->get($url);
 
     $response->assertForbidden();
+    $response->assertViewIs('auth.sso-error');
+    $response->assertSee('Tiket Akses Kedaluwarsa');
+    $response->assertSee('ERR_SSO_TICKET_EXPIRED');
     $this->assertGuest();
 });
 
-test('tolak jika nonce sudah pernah dipakai', function () {
+test('tolak jika nonce sudah pernah dipakai dan tampilkan view error sso', function () {
     $nonce = (string) Str::uuid();
 
-    // Percobaan pertama: nonce baru, tapi nim tidak akan ditemukan di DB
-    // (fokus test ini murni pada nonce, bukan resolusi user) — jadi
-    // simpan tiketnya langsung, meniru hasil dari request pertama yang
-    // sempat lolos pemeriksaan nonce sebelum gagal di langkah berikutnya.
     SsoTicket::create([
         'nonce' => $nonce,
         'nim' => '1234567890123456',
@@ -71,12 +73,15 @@ test('tolak jika nonce sudah pernah dipakai', function () {
     $response = $this->get($url);
 
     $response->assertForbidden();
+    $response->assertViewIs('auth.sso-error');
+    $response->assertSee('Tiket Sudah Pernah Digunakan');
+    $response->assertSee('ERR_SSO_NONCE_REPLAYED');
     $this->assertGuest();
     // Nonce dipakai ulang tidak boleh membuat baris kedua.
     $this->assertDatabaseCount('sso_tickets', 1);
 });
 
-test('tolak dan tidak membuat user baru jika nim tidak ditemukan', function () {
+test('tolak dan tampilkan pesan ramah jika nim mahasiswa tidak ditemukan', function () {
     Log::spy();
 
     $usersBefore = User::count();
@@ -86,6 +91,11 @@ test('tolak dan tidak membuat user baru jika nim tidak ditemukan', function () {
     $response = $this->get($url);
 
     $response->assertForbidden();
+    $response->assertViewIs('auth.sso-error');
+    $response->assertSee('Data Mahasiswa Belum Terdaftar');
+    $response->assertSee('9999999999999999');
+    $response->assertSee('ERR_SSO_STUDENT_NOT_FOUND');
+    $response->assertSee('Kembali ke E-Management Asrama');
     $this->assertGuest();
     // JANGAN buat user baru — jumlah baris users harus tetap sama.
     expect(User::count())->toBe($usersBefore);
@@ -146,6 +156,25 @@ test('admin sso login dan redirect ke dashboard konseling admin', function () {
     expect(session('sso_readonly'))->toBeNull();
 });
 
+test('tolak dan tampilkan pesan ramah jika akun admin tidak ditemukan', function () {
+    Log::spy();
+
+    $url = buildSignedSsoV2Url([
+        'identifier' => 'admin.unknown@polbangtanmalang.ac.id',
+        'role' => 'admin',
+    ]);
+
+    $response = $this->get($url);
+
+    $response->assertForbidden();
+    $response->assertViewIs('auth.sso-error');
+    $response->assertSee('Akun Administrator Belum Terdaftar');
+    $response->assertSee('admin.unknown@polbangtanmalang.ac.id');
+    $response->assertSee('ERR_SSO_ADMIN_NOT_FOUND');
+    $this->assertGuest();
+    Log::shouldHaveReceived('critical')->once();
+});
+
 test('pejabat sso login sebagai admin dengan flag readonly dan redirect ke dashboard konseling', function () {
     $admin = User::factory()->create([
         'name' => 'Admin Klinik',
@@ -169,7 +198,30 @@ test('pejabat sso login sebagai admin dengan flag readonly dan redirect ke dashb
     expect(session('sso_pejabat_email'))->toBe('kaprodi@polbangtanmalang.ac.id');
 });
 
-test('tolak jika signature v2 tidak cocok', function () {
+test('tolak dan tampilkan pesan ramah untuk pejabat jika host admin klinik belum ada', function () {
+    Log::spy();
+
+    // Pastikan tidak ada akun Admin sama sekali di database
+    User::where('role', 'Admin')->delete();
+
+    $url = buildSignedSsoV2Url([
+        'identifier' => 'kaprodi@polbangtanmalang.ac.id',
+        'role' => 'pejabat',
+        'name' => 'Bapak Kaprodi',
+    ]);
+
+    $response = $this->get($url);
+
+    $response->assertForbidden();
+    $response->assertViewIs('auth.sso-error');
+    $response->assertSee('Layanan Pejabat Belum Dapat Diakses');
+    $response->assertSee('Bapak Kaprodi');
+    $response->assertSee('ERR_SSO_PEJABAT_HOST_NOT_FOUND');
+    $this->assertGuest();
+    Log::shouldHaveReceived('critical')->once();
+});
+
+test('tolak jika signature v2 tidak cocok dan tampilkan view error sso', function () {
     $url = buildSignedSsoV2Url([
         'signature' => 'invalid-signature-v2',
     ]);
@@ -177,5 +229,8 @@ test('tolak jika signature v2 tidak cocok', function () {
     $response = $this->get($url);
 
     $response->assertForbidden();
+    $response->assertViewIs('auth.sso-error');
+    $response->assertSee('Validasi Keamanan Gagal');
+    $response->assertSee('ERR_SSO_INVALID_SIGNATURE');
     $this->assertGuest();
 });

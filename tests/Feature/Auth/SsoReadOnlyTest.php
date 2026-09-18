@@ -20,6 +20,19 @@ test('pejabat read-only dapat mengakses halaman dashboard dan list GET', functio
     $response->assertOk();
 });
 
+test('pejabat read-only dialihkan saat mencoba mengakses halaman profile', function () {
+    $admin = User::factory()->create([
+        'role' => 'Admin',
+    ]);
+
+    $response = $this->actingAs($admin)
+        ->withSession(['sso_readonly' => true, 'sso_role' => 'Pejabat'])
+        ->get('/profile');
+
+    $response->assertRedirect(route('konseling.dashboard'));
+    $response->assertSessionHas('error');
+});
+
 test('pejabat read-only diizinkan menjalankan pencarian atau filter data POST', function () {
     $admin = User::factory()->create([
         'role' => 'Admin',
@@ -36,59 +49,68 @@ test('pejabat read-only diizinkan menjalankan pencarian atau filter data POST', 
     $response->assertOk();
 });
 
-test('pejabat read-only diblokir 403 saat mencoba membuat jadwal bimbingan POST', function () {
+test('pejabat read-only dialihkan kembali dengan pesan error saat mutasi via form web non-ajax', function () {
     $admin = User::factory()->create([
         'role' => 'Admin',
     ]);
 
-    $response = $this->actingAs($admin)
+    $response = $this->from('/konseling/jadwal-bimbingan')
+        ->actingAs($admin)
         ->withSession(['sso_readonly' => true, 'sso_role' => 'Pejabat'])
         ->post('/konseling/jadwal-bimbingan/create', [
             'tanggal' => now()->format('Y-m-d'),
             'materi' => 'Materi Bimbingan',
         ]);
 
-    $response->assertForbidden();
+    $response->assertRedirect('/konseling/jadwal-bimbingan');
+    $response->assertSessionHas('error');
 });
 
-test('pejabat read-only diblokir 403 saat mencoba menghapus jadwal bimbingan DELETE', function () {
+test('pejabat read-only diblokir 403 json saat mutasi via ajax', function () {
     $admin = User::factory()->create([
         'role' => 'Admin',
     ]);
 
     $response = $this->actingAs($admin)
         ->withSession(['sso_readonly' => true, 'sso_role' => 'Pejabat'])
-        ->delete('/konseling/jadwal-bimbingan/delete/1');
-
-    $response->assertForbidden();
-});
-
-test('pejabat read-only diblokir 403 saat mencoba membuat data mahasiswa POST', function () {
-    $admin = User::factory()->create([
-        'role' => 'Admin',
-    ]);
-
-    $response = $this->actingAs($admin)
-        ->withSession(['sso_readonly' => true, 'sso_role' => 'Pejabat'])
-        ->post('/lainnya/mahasiswa/store', [
-            'name' => 'Siswa Baru',
-            'email' => 'siswabaru@gmail.com',
-            'nim' => '999888777',
+        ->postJson('/konseling/jadwal-bimbingan/create', [
+            'tanggal' => now()->format('Y-m-d'),
+            'materi' => 'Materi Bimbingan',
         ]);
 
     $response->assertForbidden();
+    $response->assertJson([
+        'message' => 'Akses ditolak: Akun Pejabat hanya memiliki izin Read-Only pada sistem E-Klinik.',
+    ]);
 });
 
-test('pejabat read-only diblokir 403 saat mencoba menghapus mahasiswa POST destroy', function () {
+test('pejabat read-only dialihkan kembali dengan pesan error saat menghapus data via form non-ajax', function () {
+    $admin = User::factory()->create([
+        'role' => 'Admin',
+    ]);
+
+    $response = $this->from('/konseling/jadwal-bimbingan')
+        ->actingAs($admin)
+        ->withSession(['sso_readonly' => true, 'sso_role' => 'Pejabat'])
+        ->delete('/konseling/jadwal-bimbingan/delete/1');
+
+    $response->assertRedirect('/konseling/jadwal-bimbingan');
+    $response->assertSessionHas('error');
+});
+
+test('pejabat read-only diblokir 403 json saat menghapus data via ajax', function () {
     $admin = User::factory()->create([
         'role' => 'Admin',
     ]);
 
     $response = $this->actingAs($admin)
         ->withSession(['sso_readonly' => true, 'sso_role' => 'Pejabat'])
-        ->post('/lainnya/mahasiswa/1');
+        ->deleteJson('/konseling/jadwal-bimbingan/delete/1');
 
     $response->assertForbidden();
+    $response->assertJson([
+        'message' => 'Akses ditolak: Akun Pejabat hanya memiliki izin Read-Only pada sistem E-Klinik.',
+    ]);
 });
 
 test('admin penuh tanpa flag readonly tidak diblokir oleh middleware readonly', function () {
@@ -96,11 +118,30 @@ test('admin penuh tanpa flag readonly tidak diblokir oleh middleware readonly', 
         'role' => 'Admin',
     ]);
 
-    // Admin hitting delete without read-only session:
-    // might fail with 404 or redirect or whatever the controller does, but NEVER 403 from read-only enforcer
     $response = $this->actingAs($admin)
         ->delete('/konseling/jadwal-bimbingan/delete/999999');
 
-    // Make sure it is not 403 Forbidden
     expect($response->status())->not->toBe(403);
+});
+
+test('login manual admin membersihkan flag sso_readonly', function () {
+    $admin = User::factory()->create([
+        'email' => 'admin.login@polbangtanmalang.ac.id',
+        'password' => bcrypt('password123'),
+        'role' => 'Admin',
+    ]);
+
+    $response = $this->withSession([
+        'sso_readonly' => true,
+        'sso_role' => 'Pejabat',
+        'sso_pejabat_name' => 'Bapak Kaprodi',
+    ])->post('/login', [
+        'login' => $admin->email,
+        'password' => 'password123',
+    ]);
+
+    $response->assertRedirect();
+    expect(session('sso_readonly'))->toBeNull();
+    expect(session('sso_role'))->toBeNull();
+    expect(session('sso_pejabat_name'))->toBeNull();
 });

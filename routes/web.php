@@ -32,23 +32,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Route::view('/form/riwayat-pasien', 'kesehatan.form.riwayat-pasien')->name('riwayat-pasien');
-// Route::view('/form/detail-rekam-medis', 'kesehatan.form.detail-rm')->name('detail-rm');
-// keterangan berobat
-// Route::view('/form/laporan-keterangan-berobat/buat-surat', 'kesehatan.form.laporan-keterangan-berobat.buat-surat')->name('lkb.buat-surat');
-// Route::view('/form/laporan-keterangan-berobat/hasil-surat', 'kesehatan.form.laporan-keterangan-berobat.hasil-surat')->name('lkb.hasil-surat');
-
-// Route::view('/form/laporan-keterangan-sakit/buat-surat', 'kesehatan.form.laporan-keterangan-sakit.buat-surat')->name('lks.buat-surat');
-// Route::view('/form/laporan-keterangan-sakit/hasil-surat', 'kesehatan.form.laporan-keterangan-sakit.hasil-surat')->name('lks.hasil-surat');
-
-// Route::view('/form/laporan-keterangan-rujukan/buat-surat', 'kesehatan.form.laporan-keterangan-rujukan.buat-surat')->name('lkr.buat-surat');
-// Route::view('/form/laporan-keterangan-rujukan/hasil-surat', 'kesehatan.form.laporan-keterangan-rujukan.hasil-surat')->name('lkr.hasil-surat');
-
-// Route::view('/form/laporan-keterangan-sehat/buat-surat', 'kesehatan.form.laporan-keterangan-sehat.buat-surat')->name('lkse.buat-surat');
-// Route::view('/form/laporan-keterangan-sehat/hasil-surat', 'kesehatan.form.laporan-keterangan-sehat.hasil-surat')->name('lkse.hasil-surat');
-
-// Route::view('/riwayat-kontrol', 'kesehatan.riwayat-kontrol')->name('riwayat-kontrol');
-
 Route::get('/test', [testController::class, 'testprint']);
 
 // Endpoint publik penerima handoff SSO dari E-Management. Sengaja di luar

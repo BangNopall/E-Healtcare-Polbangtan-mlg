@@ -30,16 +30,20 @@
             @endif
         </td>
         <td class="px-4 py-2 text-center">
-            @include('lainnya.mahasiswa.partials.modals.hapus')
+            @if (!session('sso_readonly'))
+                @include('lainnya.mahasiswa.partials.modals.hapus')
+            @endif
             <div class="items-center justify-center flex flex-row gap-3">
                 <a href="{{ route('lainnya.mahasiswa.show', $mhs->id) }}"
-                    class="font-medium text-blue-600 dark:text-blue-500 mr-2">
+                    class="font-medium text-blue-600 dark:text-blue-500 mr-2" title="Lihat Detail">
                     <span class="icon-[mdi--show-outline] w-6 h-6"></span>
                 </a>
-                <button type="button" x-on:click.prevent="$dispatch('open-modal', 'hapus-{{ $mhs->id }}');"
-                    class="font-medium text-red-600 dark:text-red-500">
-                    <span class="icon-[material-symbols--delete-outline] w-6 h-6"></span>
-                </button>
+                @if (!session('sso_readonly'))
+                    <button type="button" x-on:click.prevent="$dispatch('open-modal', 'hapus-{{ $mhs->id }}');"
+                        class="font-medium text-red-600 dark:text-red-500" title="Hapus Mahasiswa">
+                        <span class="icon-[material-symbols--delete-outline] w-6 h-6"></span>
+                    </button>
+                @endif
             </div>
         </td>
     </tr>

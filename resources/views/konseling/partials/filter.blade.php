@@ -18,12 +18,14 @@
         </div>
         <button type="submit" class="hidden" id="button-filter"></button>
         {{-- @isset($x) --}}
-        <div class="flex items-end mt-2 lg:mt-0 ml-0 lg:ml-auto">
-            <x-button x-data="" x-on:click.prevent="$dispatch('open-modal', 'tambah')" type="button"
-                class="p-2">
-                Tambah
-            </x-button>
-        </div>
+        @if (!session('sso_readonly'))
+            <div class="flex items-end mt-2 lg:mt-0 ml-0 lg:ml-auto">
+                <x-button x-data="" x-on:click.prevent="$dispatch('open-modal', 'tambah')" type="button"
+                    class="p-2">
+                    Tambah
+                </x-button>
+            </div>
+        @endif
         {{-- @endisset --}}
     </div>
 </form>
