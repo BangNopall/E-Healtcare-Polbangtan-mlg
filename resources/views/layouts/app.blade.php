@@ -44,7 +44,7 @@
                 <div
                     class="bg-white dark:bg-darker bottom-0 w-full left-0 px-4 border-t dark:border-blue-600 py-2 text-sm text-gray-500 dark:text-gray-300">
                     <div class="flex justify-between">
-                        <span>© 2023-2024 E-Klinik Polbangtan-mlg</span>
+                        <span>© 2023-2026 E-Klinik Polbangtan-mlg</span>
                         <span>v{{ config('app.version') }}</span>
                     </div>
                 </div>
