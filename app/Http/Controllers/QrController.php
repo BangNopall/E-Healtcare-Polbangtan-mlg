@@ -131,7 +131,7 @@ class QrController extends Controller
     public function qrcodebimbingan()
     {
         $user = Auth::user();
-        if (!$user->senso === 1) {
+        if ((int) $user->senso !== 1) {
             return back()->with('error', 'Anda Tidak Memiliki Akses Ke Halaman Ini');
         }
 

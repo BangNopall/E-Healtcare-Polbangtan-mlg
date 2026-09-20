@@ -134,21 +134,15 @@ class KonselingUserController extends Controller
 
     public function reviewfeedback($id)
     {
-        try {
-            $feedback = FeedbackBimbingan::findOrFail($id);
+        $feedback = FeedbackBimbingan::findOrFail($id);
 
-            $data['feedback'] = $feedback;
-
-            return view('konseling.user.form.review-feedback', $data);
-        } catch (\Throwable $th) {
-            if ($th instanceof ModelNotFoundException) {
-                return back()->with('error', 'Data Feedback tidak ditemukan');
-            } else {
-                // Logging kesalahan ke file log atau sistem monitoring
-                Log::error('Data Feedback tidak ditemukan : ' . $th->getMessage());
-                return back()->with('error', 'Data Feedback tidak ditemukan');
-            }
+        if ((int) $feedback->siswa_id !== (int) Auth::id() && ! Auth::user()->hasRole('Admin') && ! Auth::user()->hasRole('Psikolog')) {
+            abort(403, 'Aksi tidak diizinkan: Anda tidak memiliki akses ke feedback bimbingan ini.');
         }
+
+        $data['feedback'] = $feedback;
+
+        return view('konseling.user.form.review-feedback', $data);
     }
 
     public function riwayatKonsultasi()
@@ -162,21 +156,15 @@ class KonselingUserController extends Controller
 
     public function detailKonsultasi($id)
     {
-        try {
-            $dataPsikolog = DataPsikolog::findOrFail($id);
+        $dataPsikolog = DataPsikolog::findOrFail($id);
 
-            $data['dataPsikolog'] = $dataPsikolog;
-
-            return view('konseling.user.detail-konsultasi', $data);
-        } catch (\Throwable $th) {
-            if ($th instanceof ModelNotFoundException) {
-                return back()->with('error', 'Data Konsultasi tidak ditemukan');
-            } else {
-                // Logging kesalahan ke file log atau sistem monitoring
-                Log::error('Data Konsultasi tidak ditemukan : ' . $th->getMessage());
-                return back()->with('error', 'Data Konsultasi tidak ditemukan');
-            }
+        if ((int) $dataPsikolog->user_id !== (int) Auth::id() && ! Auth::user()->hasRole('Admin') && ! Auth::user()->hasRole('Psikolog')) {
+            abort(403, 'Aksi tidak diizinkan: Anda tidak memiliki akses ke riwayat konsultasi ini.');
         }
+
+        $data['dataPsikolog'] = $dataPsikolog;
+
+        return view('konseling.user.detail-konsultasi', $data);
     }
 
     private function isValidHumanDate($date)

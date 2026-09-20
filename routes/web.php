@@ -9,7 +9,6 @@ use App\Http\Controllers\MahasiswaManagementController;
 use App\Http\Controllers\PetugasManagementController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QrController;
-use App\Http\Controllers\testController;
 use App\Http\Controllers\User\KonselingUserController;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -32,8 +31,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/test', [testController::class, 'testprint']);
-
 // Endpoint publik penerima handoff SSO dari E-Management. Sengaja di luar
 // grup middleware 'guest'/'auth' — harus bisa diakses baik oleh browser
 // yang belum punya sesi maupun yang sudah (login akan menimpa sesi lama).
@@ -52,6 +49,7 @@ Route::middleware(['auth', 'profile.complete'])->group(function () {
 
         Route::post('/update-avatar/{id}', [ProfileController::class, 'updateAvatar'])->name('update-avatar');
         Route::post('/create-rpd/{id}', [ProfileController::class, 'storeRPD'])->name('create-rpd');
+        Route::get('/rpd/{id}/download', [ProfileController::class, 'downloadRPD'])->name('rpd.download');
         Route::patch('/update-dmti/{id}', [ProfileController::class, 'updateDMTI'])->name('update-dmti');
         Route::patch('/update-cdmi/{id}', [ProfileController::class, 'updateCDMI'])->name('update-cdmi');
     });
@@ -131,7 +129,7 @@ Route::middleware(['auth', 'profile.complete'])->group(function () {
 
                 Route::get('/{id}', [MahasiswaManagementController::class, 'show'])->name('show');
                 Route::post('/store', [MahasiswaManagementController::class, 'store'])->name('store');
-                Route::post('/{id}', [MahasiswaManagementController::class, 'destroy'])->name('destroy');
+                Route::delete('/{id}', [MahasiswaManagementController::class, 'destroy'])->name('destroy');
                 Route::post('/{id}/update-foto', [MahasiswaManagementController::class, 'updateAvatar'])->name('update-foto');
                 Route::post('/{id}/hapus-foto', [MahasiswaManagementController::class, 'hapusAvatar'])->name('hapus-foto');
                 Route::patch('/{id}/update-data-mahasiswa', [MahasiswaManagementController::class, 'updateDataMahasiswa'])->name('update-data-mahasiswa');
@@ -151,7 +149,7 @@ Route::middleware(['auth', 'profile.complete'])->group(function () {
                 Route::post('/filter', [PetugasManagementController::class, 'filterPetugas'])->name('filter');
                 Route::get('/{id}', [PetugasManagementController::class, 'show'])->name('show');
                 Route::post('/store', [PetugasManagementController::class, 'store'])->name('store');
-                Route::post('/{id}', [PetugasManagementController::class, 'destroy'])->name('destroy');
+                Route::delete('/{id}', [PetugasManagementController::class, 'destroy'])->name('destroy');
                 Route::post('/{id}/update-foto', [PetugasManagementController::class, 'updateAvatar'])->name('update-foto');
                 Route::post('/{id}/hapus-foto', [PetugasManagementController::class, 'hapusAvatar'])->name('hapus-foto');
                 Route::patch('/{id}/update-data-mahasiswa', [PetugasManagementController::class, 'updateDataPetugas'])->name('update-data-petugas');

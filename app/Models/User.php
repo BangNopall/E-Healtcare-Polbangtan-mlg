@@ -237,19 +237,9 @@ class User extends Authenticatable
         return $this->hasMany(RPD::class);
     }
 
-    public function Senso()
+    public function bimbinganSenso()
     {
-        return $this->hasOne(BimbinganSenso::class);
-    }
-
-    public function Feedback()
-    {
-        return $this->hasMany(FeedbackBimbingan::class);
-    }
-
-    public function BimbinganSenso()
-    {
-        return $this->hasMany(BimbinganSenso::class);
+        return $this->hasOne(BimbinganSenso::class, 'siswa_id');
     }
 
     public function PresensiBimbingan()

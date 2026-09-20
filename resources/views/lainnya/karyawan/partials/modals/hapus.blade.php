@@ -21,6 +21,7 @@
                 </x-secondary-button>
                 <form action="{{ route('lainnya.mahasiswa.destroy', $karyawan->id) }}" method="POST">
                     @csrf
+                    @method('DELETE')
                     <x-danger-button class="py-2 px-3" type="submit">
                         Hapus
                     </x-danger-button>

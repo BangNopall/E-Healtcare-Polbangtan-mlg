@@ -52,10 +52,10 @@
                         -
                     @endif
                 </td>
-                <td>{{ $d->siswa->name }}</td>
-                <td>{{ $d->senso->name }}</td>
-                <td>{{ $d->jadwal->materi }}</td>
-                <td>{{ $d->feedback }}</td>
+                <td>{{ preg_match('/^[=+\-@\t\r]/', (string)$d->siswa->name) ? "'" . $d->siswa->name : $d->siswa->name }}</td>
+                <td>{{ preg_match('/^[=+\-@\t\r]/', (string)$d->senso->name) ? "'" . $d->senso->name : $d->senso->name }}</td>
+                <td>{{ preg_match('/^[=+\-@\t\r]/', (string)$d->jadwal->materi) ? "'" . $d->jadwal->materi : $d->jadwal->materi }}</td>
+                <td>{{ preg_match('/^[=+\-@\t\r]/', (string)$d->feedback) ? "'" . $d->feedback : $d->feedback }}</td>
             </tr>
         @endforeach
     </tbody>
