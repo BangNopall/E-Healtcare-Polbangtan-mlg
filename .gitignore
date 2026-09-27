@@ -21,8 +21,6 @@ CLAUDE.md
 database/sql
 .claude
 CLAUDE.md
-package-lock.json
-composer.lock
-docs
-
 .DS_Store
+composer.lock
+package-lock.json

@@ -1,6 +1,6 @@
 # ==============================================================================
 # Multi-Stage Production Dockerfile for E-Polbangtan HealtCare (E-Klinik)
-# Target: Linux Debian VPS (PHP 8.3 FPM + Nginx + Redis + MySQL 8.0)
+# Target: Linux Debian VPS (PHP 8.4 FPM + Nginx + Redis + MySQL 8.0)
 # ==============================================================================
 
 # ------------------------------------------------------------------------------
@@ -18,9 +18,9 @@ COPY . .
 RUN npm run build
 
 # ------------------------------------------------------------------------------
-# Stage 2: Production PHP 8.3 FPM Runtime
+# Stage 2: Production PHP 8.4 FPM Runtime
 # ------------------------------------------------------------------------------
-FROM php:8.3-fpm-alpine AS production
+FROM php:8.4-fpm-alpine AS production
 
 # Install build tools & runtime system dependencies
 RUN apk add --no-cache \

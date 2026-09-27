@@ -26,7 +26,7 @@ if [ -d ".git" ]; then
 fi
 
 # 3. Build image produksi dengan Docker Compose
-echo "[2/6] Membangun image Docker produksi (Node.js Vite + PHP 8.3-FPM)..."
+echo "[2/6] Membangun image Docker produksi (Node.js Vite + PHP 8.4-FPM)..."
 docker compose build --pull
 
 # 4. Jalankan seluruh kontainer di latar belakang
