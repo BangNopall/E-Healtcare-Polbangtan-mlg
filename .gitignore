@@ -23,6 +23,6 @@ database/sql
 CLAUDE.md
 package-lock.json
 composer.lock
-
+docs
 
 .DS_Store
