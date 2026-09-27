@@ -8,7 +8,7 @@
             {{ $jadwal->materi }}
         </td>
         <td class="px-4 py-2">
-            {{ $senso->senso->name }}
+            {{ optional($senso->senso)->name ?? ($senso->name ?? '-') }}
         </td>
         <td class="px-4 py-2">
             {{ \Carbon\Carbon::parse($jadwal->tanggal)->isoFormat('D MMMM Y') }}

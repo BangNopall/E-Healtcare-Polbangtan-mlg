@@ -47,7 +47,7 @@
                 <td>{{ $ks->created_at->format('F Y') }}</td>
                 <td>
                     @if ($ks->user->cdmi_complete == 1)
-                        {{ $ks->user->nim }}
+                        {{ \App\Helpers\SecurityHelper::sanitizeSpreadsheetCell($ks->user->nim) }}
                     @else
                         -
                     @endif

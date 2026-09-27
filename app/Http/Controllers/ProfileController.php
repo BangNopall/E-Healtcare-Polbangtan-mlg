@@ -209,13 +209,11 @@ class ProfileController extends Controller
             // Rollback transaksi jika terjadi kesalahan
             DB::rollback();
 
-            // Tangani kesalahan dengan lebih baik
             if ($th instanceof ValidationException) {
-                return back()->withErrors($th->errors())->withInput()->with('error', 'Gagal Update Data Profile: ' . $th->getMessage());
+                return back()->withErrors($th->errors())->withInput()->with('error', 'Gagal memperbarui data DMTI. Silakan periksa isian data Anda.');
             } else {
-                // Logging kesalahan ke file log atau sistem monitoring
                 Log::error('Gagal Update Data Profile: ' . $th->getMessage());
-                return back()->with('error', 'Gagal Update Data Profile: ' . $th->getMessage());
+                return back()->with('error', 'Gagal memperbarui data DMTI. Silakan coba beberapa saat lagi.');
             }
         }
     }
@@ -284,12 +282,11 @@ class ProfileController extends Controller
             // Rollback transaksi jika terjadi kesalahan
             DB::rollback();
 
-            // Tangani kesalahan dengan lebih baik
             if ($th instanceof ValidationException) {
-                return back()->withErrors($th->errors())->withInput()->with('error', 'Gagal Update Data Profile: ' . $th->getMessage());
+                return back()->withErrors($th->errors())->withInput()->with('error', 'Gagal memperbarui data CDMI. Silakan periksa isian data Anda.');
             } else {
                 Log::error('Gagal Update Data Profile: ' . $th->getMessage());
-                return back()->with('error', 'Gagal Update Data Profile: ' . $th->getMessage());
+                return back()->with('error', 'Gagal memperbarui data CDMI. Silakan coba beberapa saat lagi.');
             }
         }
     }
@@ -324,10 +321,10 @@ class ProfileController extends Controller
             if ($th instanceof ModelNotFoundException) {
                 return back()->with('error', 'Data tidak ditemukan');
             } elseif ($th instanceof ValidationException) {
-                return back()->withErrors($th->errors())->withInput()->with('error', 'Data RPD gagal di kirim : ' . $th->getMessage());
+                return back()->withErrors($th->errors())->withInput()->with('error', 'Data RPD gagal dikirim. Silakan periksa berkas yang diunggah.');
             } else {
                 Log::error('Data RPD gagal di kirim : ' . $th->getMessage());
-                return back()->with('error', 'Data RPD gagal di kirim');
+                return back()->with('error', 'Data RPD gagal dikirim. Silakan periksa berkas yang diunggah.');
             }
         }
     }

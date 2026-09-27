@@ -145,3 +145,39 @@ test('login manual admin membersihkan flag sso_readonly', function () {
     expect(session('sso_role'))->toBeNull();
     expect(session('sso_pejabat_name'))->toBeNull();
 });
+
+test('blocks pejabat from downloading student rpd files via GET', function () {
+    $admin = User::factory()->create([
+        'role' => 'Admin',
+    ]);
+
+    $student = User::factory()->create([
+        'role' => 'Mahasiswa',
+    ]);
+
+    $response = $this->actingAs($admin)
+        ->withSession(['sso_readonly' => true, 'sso_role' => 'Pejabat'])
+        ->get(route('profile.rpd.download', $student->id));
+
+    $response->assertRedirect(route('konseling.dashboard'));
+    $response->assertSessionHas('error');
+});
+
+test('does not allow arbitrary post routes containing word filter or print to bypass read-only', function () {
+    \Illuminate\Support\Facades\Route::post('/konseling/filter-override-action', fn () => response()->json(['success' => true]))
+        ->middleware(['web', \App\Http\Middleware\PreventMutationsWhenReadOnly::class]);
+
+    $admin = User::factory()->create([
+        'role' => 'Admin',
+    ]);
+
+    // An arbitrary mutation endpoint that happens to have "filter" in its URL but is not a whitelisted filter route
+    $response = $this->actingAs($admin)
+        ->withSession(['sso_readonly' => true, 'sso_role' => 'Pejabat'])
+        ->postJson('/konseling/filter-override-action', [
+            'key' => 'value',
+        ]);
+
+    $response->assertForbidden();
+});
+

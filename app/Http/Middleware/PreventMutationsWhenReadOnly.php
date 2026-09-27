@@ -62,13 +62,29 @@ class PreventMutationsWhenReadOnly
             return true;
         }
 
-        // 2. Route pencarian & filter data diizinkan
-        if ($request->is('*filter*') || ($request->route() && str_contains($request->route()->getName() ?? '', 'filter'))) {
+        // 2. Whitelist nama rute filter & pencarian yang valid
+        if ($request->routeIs([
+            '*.filter',
+            '*.filter-*',
+            '*.filterJadwalBimbingan',
+            'konseling.filter-senso',
+            'konseling.filterJadwalBimbingan',
+            'konseling.filter-feedback',
+            'konseling.filter-konsultasi',
+            'lainnya.mahasiswa.filter',
+            'lainnya.karyawan.filter',
+            'lainnya.petugas.filter',
+            'user.konseling.filter-konsultasi',
+        ])) {
             return true;
         }
 
-        // 3. Route pencetakan laporan diizinkan
-        if ($request->is('*print*') || ($request->route() && str_contains($request->route()->getName() ?? '', 'print'))) {
+        // 3. Whitelist nama rute pencetakan laporan yang valid
+        if ($request->routeIs([
+            '*.print.*',
+            'konseling.print.laporan-konsultasi',
+            'konseling.print.laporan-feedback',
+        ])) {
             return true;
         }
 

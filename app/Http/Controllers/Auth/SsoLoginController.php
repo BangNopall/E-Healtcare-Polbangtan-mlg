@@ -75,8 +75,7 @@ class SsoLoginController extends Controller
 
         // 1. Handoff Admin: Login sebagai Admin dengan hak akses penuh (read-write)
         if ($role === 'admin') {
-            $admin = User::where('email', $identifier)->where('role', 'Admin')->first()
-                ?? User::where('role', 'Admin')->first();
+            $admin = User::where('email', $identifier)->where('role', 'Admin')->first();
 
             if (! $admin) {
                 Log::critical('SSO: Akun Admin tidak ditemukan di E-Klinik untuk identitas: '.$identifier);

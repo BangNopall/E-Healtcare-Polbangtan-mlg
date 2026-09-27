@@ -20,13 +20,14 @@ class InternalApiController extends Controller
 
     public function userNoSenso()
     {
-        $data = User::where('senso', 0)->where('role', 'Mahasiswa')->orderBy('name', 'asc')->get()->toArray();
+        $data = User::select('id', 'name', 'nim')->where('senso', 0)->where('role', 'Mahasiswa')->orderBy('name', 'asc')->get()->toArray();
         return response()->json($data, 200);
     }
 
     public function userNoSensoNoAnakAsuh()
     {
-        $users = User::where('senso', 0)
+        $users = User::select('id', 'name', 'nim')
+            ->where('senso', 0)
             ->where('role', 'Mahasiswa')
             ->whereDoesntHave('bimbinganSenso')
             ->orderBy('name', 'asc')

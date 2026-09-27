@@ -23,6 +23,7 @@ use App\Models\PresensiBimbingan;
 use App\Exports\laporanKonsultasi;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\RedirectResponse;
@@ -133,10 +134,10 @@ class BimbinganKonselingController extends Controller
             return response()->json(['table' => $table]);
         } catch (\Exception $th) {
             if ($th instanceof ValidationException) {
-                return back()->withErrors($th->errors())->withInput()->with('error', 'Gagal memfilter User: ' . $th->getMessage());
+                return back()->withErrors($th->errors())->withInput()->with('error', 'Gagal memfilter data pembimbing.');
             } else {
                 Log::error('Gagal memfilter User: ' . $th->getMessage());
-                return back()->with('error', 'Gagal memfilter User');
+                return back()->with('error', 'Gagal memfilter data pembimbing.');
             }
         }
     }
@@ -290,7 +291,7 @@ class BimbinganKonselingController extends Controller
                 return back()->withErrors($th->errors())->withInput()->with('error', 'Data Jadwal Bimbingan gagal disimpan');
             } else {
                 Log::error('Data Jadwal Bimbingan gagal disimpan : ' . $th->getMessage());
-                return back()->with('error', 'Data Jadwal Bimbingan gagal disimpan : ' . $th->getMessage());
+                return back()->with('error', 'Data Jadwal Bimbingan gagal disimpan. Silakan periksa format data.');
             }
         }
     }
@@ -342,10 +343,10 @@ class BimbinganKonselingController extends Controller
             return response()->json(['table' => $table]);
         } catch (\Exception $th) {
             if ($th instanceof ValidationException) {
-                return back()->withErrors($th->errors())->withInput()->with('error', 'Gagal memfilter Jadwal Bimbingan: ' . $th->getMessage());
+                return back()->withErrors($th->errors())->withInput()->with('error', 'Gagal memfilter data jadwal bimbingan.');
             } else {
                 Log::error('Gagal memfilter Jadwal Bimbingan: ' . $th->getMessage());
-                return back()->with('error', 'Gagal memfilter Jadwal Bimbingan');
+                return back()->with('error', 'Gagal memfilter data jadwal bimbingan.');
             }
         }
     }
@@ -474,10 +475,10 @@ class BimbinganKonselingController extends Controller
             return response()->json(['table' => $table]);
         } catch (\Exception $th) {
             if ($th instanceof ValidationException) {
-                return back()->withErrors($th->errors())->withInput()->with('error', 'Gagal memfilter Feedback Bimbingan: ' . $th->getMessage());
+                return back()->withErrors($th->errors())->withInput()->with('error', 'Gagal memfilter data feedback bimbingan.');
             } else {
                 Log::error('Gagal memfilter Feedback Bimbingan: ' . $th->getMessage());
-                return back()->with('error', 'Gagal memfilter Feedback Bimbingan');
+                return back()->with('error', 'Gagal memfilter data feedback bimbingan.');
             }
         }
     }
@@ -619,10 +620,13 @@ class BimbinganKonselingController extends Controller
         try {
             DB::beginTransaction();
             $dataPsikolog = DataPsikolog::findOrFail($id);
-            // $dataPsikolog->delete();
-
+            $dataPsikolog->deleted_by = Auth::id();
+            $dataPsikolog->save();
             $dataPsikolog->delete();
             DB::commit();
+
+            Log::info('Medical record soft-deleted', ['by' => (int) Auth::id(), 'record_id' => (int) $id]);
+
             return redirect()->back()->with('success', 'Data Psikolog baru berhasil dihapus');
         } catch (\Exception $th) {
             DB::rollBack();
@@ -726,10 +730,10 @@ class BimbinganKonselingController extends Controller
             return response()->json(['table' => $table]);
         } catch (\Exception $th) {
             if ($th instanceof ValidationException) {
-                return back()->withErrors($th->errors())->withInput()->with('error', 'Gagal memfilter Konsultasi: ' . $th->getMessage());
+                return back()->withErrors($th->errors())->withInput()->with('error', 'Gagal memfilter data konsultasi.');
             } else {
                 Log::error('Gagal memfilter Konsultasi: ' . $th->getMessage());
-                return back()->with('error', 'Gagal memfilter Konsultasi');
+                return back()->with('error', 'Gagal memfilter data konsultasi.');
             }
         }
     }
@@ -775,20 +779,16 @@ class BimbinganKonselingController extends Controller
         try {
             if ($request->submit == 'pdf') {
                 $pdf = Pdf::loadView('print.laporan-konsultasi', compact('konsul', 'monthName'))->setPaper('a3', 'landscape');
-                $fileName = preg_replace('/[^A-Za-z0-9_\-]/', '_', 'Laporan Konsultasi_' . $monthName) . '.pdf';
-                $filePath = storage_path('app/public/' . $fileName);
+                $fileName = preg_replace('/[^A-Za-z0-9_\-]/', '_', 'Laporan_Konsultasi_' . $monthName) . '.pdf';
 
-                // Simpan file pdf
-                $pdf->save($filePath);
-                // Mengembalikan URL atau path ke file PDF yang baru disimpan
-                return response()->download($filePath)->deleteFileAfterSend(true);
+                return $pdf->download($fileName);
             }
             if ($request->submit == 'excel') {
                 return Excel::download(new laporanKonsultasi($konsul, $monthName), 'Laporan Konsultasi_' . $monthName . '.xlsx');
             }
         } catch (\Exception $th) {
             Log::error('Gagal Mencetak Laporan Rekam Medis: ' . $th->getMessage());
-            return back()->with('error', 'Gagal Mencetak Laporan Rekam Medis:' . $th->getMessage());
+            return back()->with('error', 'Gagal mencetak laporan konsultasi. Silakan periksa data dan coba lagi.');
         }
     }
     public function printLaporanFeedback(Request $request)
@@ -828,20 +828,16 @@ class BimbinganKonselingController extends Controller
         try {
             if ($request->submit == 'pdf') {
                 $pdf = Pdf::loadView('print.laporan-feedback', compact('data', 'monthName'))->setPaper('a3', 'landscape');
-                $fileName = preg_replace('/[^A-Za-z0-9_\-]/', '_', 'Laporan Bimbingan_' . $monthName) . '.pdf';
-                $filePath = storage_path('app/public/' . $fileName);
+                $fileName = preg_replace('/[^A-Za-z0-9_\-]/', '_', 'Laporan_Bimbingan_' . $monthName) . '.pdf';
 
-                // Simpan file pdf
-                $pdf->save($filePath);
-                // Mengembalikan URL atau path ke file PDF yang baru disimpan
-                return response()->download($filePath)->deleteFileAfterSend(true);
+                return $pdf->download($fileName);
             }
             if ($request->submit == 'excel') {
                 return Excel::download(new laporanBimbingan($data, $monthName), 'Laporan Bimbingan_' . $monthName . '.xlsx');
             }
         } catch (\Exception $th) {
             Log::error('Gagal Mencetak Laporan Konseling : ' . $th->getMessage());
-            return back()->with('error', 'Gagal Mencetak Laporan Konseling :' . $th->getMessage());
+            return back()->with('error', 'Gagal mencetak laporan bimbingan. Silakan periksa data dan coba lagi.');
         }
     }
 }

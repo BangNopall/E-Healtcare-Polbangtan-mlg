@@ -34,7 +34,7 @@ use Illuminate\Support\Facades\Route;
 // Endpoint publik penerima handoff SSO dari E-Management. Sengaja di luar
 // grup middleware 'guest'/'auth' — harus bisa diakses baik oleh browser
 // yang belum punya sesi maupun yang sudah (login akan menimpa sesi lama).
-Route::get('/sso', [SsoLoginController::class, 'receive'])->name('sso.login');
+Route::get('/sso', [SsoLoginController::class, 'receive'])->middleware('throttle:15,1')->name('sso.login');
 
 Route::middleware('guest')->group(function () {
     Route::redirect('/', '/login');
@@ -157,7 +157,7 @@ Route::middleware(['auth', 'profile.complete'])->group(function () {
             });
         });
     });
-    Route::middleware('role:Admin,Psikolog')->prefix('api')->name('api.')->group(function () {
+    Route::middleware(['role:Admin,Psikolog', 'throttle:60,1'])->prefix('api')->name('api.')->group(function () {
         Route::get('/get_user', [\App\Http\Controllers\API\InternalApiController::class, 'get_user'])->name('get_users');
         Route::get('/get_user_no_senso', [\App\Http\Controllers\API\InternalApiController::class, 'userNoSenso'])->name('userNoSenso');
         Route::get('/get_user_bukan_senso_bukan_anak_asuh', [\App\Http\Controllers\API\InternalApiController::class, 'userNoSensoNoAnakAsuh'])->name('userNoSensoNoAnakAsuh');

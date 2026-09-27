@@ -17,7 +17,7 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
-
+use Illuminate\Support\Carbon;
 
 class QrController extends Controller
 {
@@ -61,69 +61,6 @@ class QrController extends Controller
                 // Logging kesalahan ke file log atau sistem monitoring
                 Log::error('Token gagal ditampilkan: ' . $th->getMessage());
                 return back()->with('error', 'Terjadi kesalahan, silakan coba lagi atau hubungi petugas.');
-            }
-        }
-    }
-
-    public function kamera()
-    {
-        try {
-            $user = Auth::user();
-
-            if (!$user) {
-                return back()->with('error', 'User tidak ditemukan ketika sqan QR');
-            }
-
-            $data['user'] = $user;
-
-            return view('kesehatan.kamera', $data);
-        } catch (\Exception $th) {
-            if ($th instanceof ModelNotFoundException) {
-                return back()->with('error', 'User tidak ditemukan ketika sqan QR');
-            } else {
-                // Logging kesalahan ke file log atau sistem monitoring
-                Log::error('User tidak ditemukan ketika sqan QR: ' . $th->getMessage());
-                return back()->with('error', 'User tidak ditemukan ketika sqan QR.');
-            }
-        }
-    }
-
-    public function scanQr(Request $request)
-    {
-
-        // dd($request->all());
-        $validator = Validator::make($request->all(), [
-            'token' => 'required|string',
-        ]);
-
-        if ($validator->fails()) {
-            return back()->with('error', 'Token tidak valid');
-        }
-
-        $token = $request->token;
-
-        // dd($token);
-
-        try {
-            $user = User::where('kesehatan_token', $token)->firstOrFail();
-
-            if ($user->kesehatan_token_expired_at < now()) {
-                User::UpdateTokenKesehatan($user->id);
-                return back()->with('error', 'Token Anda Sudah Kadaluarsa Kami baru saja memperbarui Token Anda Silahkan coba lagi. REFRESH HALAMAN ANDA');
-            }
-
-            if (!$user) {
-                return back()->with('error', 'User Tidak Ditemukan Silahkan coba lagi.');
-            }
-
-            return redirect()->route('kesehatan.riwayat-pasien', $user->id);
-        } catch (\Exception $th) {
-            if ($th instanceof ModelNotFoundException) {
-                return back()->with('error', 'User Tidak Ditemukan Silahkan coba lagi. REFRESH HALAMAN ANDA');
-            } else {
-                // Logging kesalahan ke file log atau sistem monitoring
-                Log::error('User Tidak Ditemukan Silahkan coba lagi. REFRESH HALAMAN ANDA: ' . $th->getMessage());
-                return back()->with('error', 'User Tidak Ditemukan Silahkan coba lagi. REFRESH HALAMAN ANDA.');
             }
         }
     }
@@ -180,7 +117,8 @@ class QrController extends Controller
         try {
             $user = Auth::user();
 
-            $checkJadwalToday = JadwalBimbingan::where('tanggal', now()->format('Y-m-d'))->first();
+            $today = Carbon::now('Asia/Jakarta')->toDateString();
+            $checkJadwalToday = JadwalBimbingan::where('tanggal', $today)->first();
 
             if (!$checkJadwalToday) {
                 return redirect()->route('konseling.jadwal-bimbingan')->with('error', 'Jadwal Bimbingan Hari Ini Belum Tersedia');
@@ -226,7 +164,11 @@ class QrController extends Controller
 
             DB::beginTransaction();
 
-            $jadwal = JadwalBimbingan::where('tanggal', now()->format('Y-m-d'))->firstOrFail();
+            $now = Carbon::now('Asia/Jakarta');
+            $tanggalPresensi = $now->toDateString();
+            $jamPresensi = $now->toTimeString();
+
+            $jadwal = JadwalBimbingan::where('tanggal', $tanggalPresensi)->firstOrFail();
 
             $presensiSenso = PresensiBimbingan::where('senso_id', $user->id)
                 ->where('jadwal_id', $jadwal->id)
@@ -236,10 +178,22 @@ class QrController extends Controller
                 return back()->with('error', 'Jadwal Presensi Hari Ini Tidak Ditemukan');
             }
 
-            $jamPresensi = now()->format('H:i:s');
-            $tanggalPresensi = now()->format('Y-m-d');
+            // 1. Cek apakah sesi bimbingan hari ini telah selesai
+            $waktuSelesai = Carbon::parse($jadwal->tanggal . ' ' . $jadwal->jam_selesai, 'Asia/Jakarta');
+            if ($now->gt($waktuSelesai)) {
+                DB::rollBack();
+                return back()->with('error', 'Sesi bimbingan hari ini telah berakhir.');
+            }
 
-            if (now()->format('H:i:s') > $jadwal->jam_selesai) {
+            // 2. Cegah penimpaan status manual seperti Izin atau Sakit
+            if (in_array($presensiSenso->status, ['Izin', 'Sakit'])) {
+                DB::rollBack();
+                return back()->with('error', "Status presensi pengguna sudah tercatat sebagai '{$presensiSenso->status}' dan tidak dapat diubah via pemindai QR.");
+            }
+
+            // 3. Evaluasi keterlambatan berdasarkan jam_mulai + batas toleransi 15 menit menggunakan Carbon
+            $gracePeriod = Carbon::parse($jadwal->tanggal . ' ' . $jadwal->jam_mulai, 'Asia/Jakarta')->addMinutes(15);
+            if ($now->gt($gracePeriod)) {
                 $status = 'Terlambat';
             } else {
                 $status = 'Hadir';
@@ -253,16 +207,19 @@ class QrController extends Controller
                 'status' => $status,
             ]);
 
+            // 4. Hanguskan & regenerate token bimbingan user seketika (anti-replay & anti-joki presensi)
+            User::updateTokenBimbingan($user->id);
+
             DB::commit();
 
-            return back()->with('success', 'Presensi Berhasil Disimpan, Link Feedback Mahasiswa Sudah Bisa Di Akses.');
+            return back()->with('success', "Presensi Senso '{$user->name}' berhasil disimpan dengan status '{$status}'. Link Feedback Mahasiswa Sudah Bisa Di Akses.");
         } catch (ModelNotFoundException $e) {
             DB::rollBack();
             return back()->with('error', 'User atau Jadwal Tidak Ditemukan. Silahkan coba lagi. REFRESH HALAMAN ANDA');
         } catch (\Exception $th) {
             DB::rollBack();
             Log::error('Error menyimpan presensi: ' . $th->getMessage());
-            return back()->with('error', 'Error: ' . $th->getMessage());
+            return back()->with('error', 'Terjadi kesalahan saat memproses presensi. Silakan coba lagi.');
         }
     }
 
@@ -316,7 +273,7 @@ class QrController extends Controller
         } catch (\Exception $th) {
             DB::rollBack();
             Log::error('Error Melakukan Konsultasi: ' . $th->getMessage());
-            return back()->with('error', 'Error: ' . $th->getMessage());
+            return back()->with('error', 'Terjadi kesalahan saat memproses pemindaian konsultasi. Silakan coba lagi.');
         }
     }
 

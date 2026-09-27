@@ -7,16 +7,16 @@
     <div class="px-2 sm:px-4 py-3 lg:py-5">
         <div
             class="bg-white dark:bg-darker rounded-lg text-white drop-shadow-xl w-full sm:w-[95%] md:w-[450px] mx-auto p-3 md:p-5">
-            <div class="flex justify-center items-center mb-4 w-auto mx-auto">
-                <div id="reader" style="width: 600px"></div>
+            <div class="flex justify-center items-center mb-4 w-full mx-auto">
+                <div id="reader" class="w-full max-w-full aspect-square overflow-hidden rounded-lg"></div>
             </div>
             <div class="flex gap-1 w-full">
                 <select id="cameraSelect"
-                    class="rounded bg-blue-600 dark:bg-dark border-blue-50 dark:border-gray-900 text-gray-100 w-full focus:ring-0 focus:border-0 block flex-1 text-sm p-2"
+                    class="rounded bg-blue-600 dark:bg-dark border-blue-50 dark:border-gray-900 text-gray-100 w-full focus:ring-0 focus:border-0 block flex-1 text-sm p-2 transition-all duration-200"
                     disabled>
-                    <option hidden selected class="bg-blue-600 dark:bg-dark">Pilih Kamera</option>
+                    <option hidden selected class="bg-blue-600 dark:bg-dark">Memuat Kamera...</option>
                 </select>
-                <button class="rounded bg-blue-600 dark:bg-dark border-blue-50 dark:border-gray-900 text-gray-100 p-2"
+                <button class="rounded bg-blue-600 dark:bg-dark border-blue-50 dark:border-gray-900 text-gray-100 p-2 font-medium transition-all duration-200"
                     id="btnstop">Stop Scan</button>
             </div>
             <div class="text-center mb-3 mt-2 space-y-1">
