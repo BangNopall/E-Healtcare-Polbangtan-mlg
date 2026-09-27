@@ -37,9 +37,15 @@ class JadwalBimbingan extends Model
         parent::boot();
 
         static::creating(function ($jadwal) {
-            $jadwal->jam_mulai = '00:00:01';
-            $jadwal->jam_selesai = '23:59:59';
-            $jadwal->token = self::generateUniqueToken();
+            if (empty($jadwal->jam_mulai)) {
+                $jadwal->jam_mulai = '08:00:00';
+            }
+            if (empty($jadwal->jam_selesai)) {
+                $jadwal->jam_selesai = '17:00:00';
+            }
+            if (empty($jadwal->token)) {
+                $jadwal->token = self::generateUniqueToken();
+            }
         });
 
         static::created(function ($jadwal) {

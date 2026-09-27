@@ -134,10 +134,10 @@ class KaryawanManagementController extends Controller
             return response()->json(['table' => $table]);
         } catch (\Exception $th) {
             if ($th instanceof ValidationException) {
-                return back()->withErrors($th->errors())->withInput()->with('error', 'Gagal memfilter Karyawan: ' . $th->getMessage());
+                return back()->withErrors($th->errors())->withInput()->with('error', 'Gagal memfilter data karyawan.');
             } else {
                 Log::error('Gagal memfilter Karyawan: ' . $th->getMessage());
-                return back()->with('error', 'Gagal memfilter Karyawan');
+                return back()->with('error', 'Gagal memfilter data karyawan.');
             }
         }
     }

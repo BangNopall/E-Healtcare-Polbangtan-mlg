@@ -128,9 +128,8 @@ class PetugasManagementController extends Controller
             } elseif ($th instanceof ValidationException) {
                 return back()->withErrors($th->errors())->withInput()->with('error', 'Data gagal dihapus');
             } else {
-                // Logging kesalahan ke file log atau sistem monitoring
                 Log::error('Data gagal dihapus : ' . $th->getMessage());
-                return back()->with('error', 'Data gagal dihapus : ' . $th->getMessage());
+                return back()->with('error', 'Data petugas gagal dihapus.');
             }
         }
     }
@@ -390,10 +389,10 @@ class PetugasManagementController extends Controller
             return response()->json(['table' => $table]);
         } catch (\Exception $th) {
             if ($th instanceof ValidationException) {
-                return back()->withErrors($th->errors())->withInput()->with('error', 'Gagal memfilter Petugas: ' . $th->getMessage());
+                return back()->withErrors($th->errors())->withInput()->with('error', 'Gagal memfilter data petugas.');
             } else {
                 Log::error('Gagal memfilter Petugas: ' . $th->getMessage());
-                return back()->with('error', 'Gagal memfilter Petugas');
+                return back()->with('error', 'Gagal memfilter data petugas.');
             }
         }
     }

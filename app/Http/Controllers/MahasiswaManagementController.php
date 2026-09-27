@@ -72,9 +72,8 @@ class MahasiswaManagementController extends Controller
             } elseif ($th instanceof ValidationException) {
                 return back()->withErrors($th->errors())->withInput()->with('error', 'Data Mahasiswa gagal disimpan');
             } else {
-                // Logging kesalahan ke file log atau sistem monitoring
                 Log::error('Data Mahasiswa gagal disimpan : ' . $th->getMessage());
-                return back()->with('error', 'Data Mahasiswa gagal disimpan : ' . $th->getMessage());
+                return back()->with('error', 'Data Mahasiswa gagal disimpan. Silakan periksa kelengkapan data.');
             }
         }
     }
@@ -513,10 +512,10 @@ class MahasiswaManagementController extends Controller
             return response()->json(['table' => $table]);
         } catch (\Exception $th) {
             if ($th instanceof ValidationException) {
-                return back()->withErrors($th->errors())->withInput()->with('error', 'Gagal memfilter User: ' . $th->getMessage());
+                return back()->withErrors($th->errors())->withInput()->with('error', 'Gagal memfilter data mahasiswa.');
             } else {
                 Log::error('Gagal memfilter User: ' . $th->getMessage());
-                return back()->with('error', 'Gagal memfilter User');
+                return back()->with('error', 'Gagal memfilter data mahasiswa.');
             }
         }
     }

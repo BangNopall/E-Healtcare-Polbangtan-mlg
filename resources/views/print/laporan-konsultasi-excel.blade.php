@@ -47,15 +47,15 @@
                 <td>{{ $ks->created_at->format('F Y') }}</td>
                 <td>
                     @if ($ks->user->cdmi_complete == 1)
-                        {{ $ks->user->nim }}
+                        {{ \App\Helpers\SecurityHelper::sanitizeSpreadsheetCell($ks->user->nim) }}
                     @else
                         -
                     @endif
                 </td>
-                <td>{{ $ks->user->name }}</td>
-                <td>{{ $ks->metode_psikologi }}</td>
-                <td>{{ $ks->diagnosa }}</td>
-                <td>{{ $ks->keluhan }}</td>
+                <td>{{ preg_match('/^[=+\-@\t\r]/', (string)$ks->user->name) ? "'" . $ks->user->name : $ks->user->name }}</td>
+                <td>{{ preg_match('/^[=+\-@\t\r]/', (string)$ks->metode_psikologi) ? "'" . $ks->metode_psikologi : $ks->metode_psikologi }}</td>
+                <td>{{ preg_match('/^[=+\-@\t\r]/', (string)$ks->diagnosa) ? "'" . $ks->diagnosa : $ks->diagnosa }}</td>
+                <td>{{ preg_match('/^[=+\-@\t\r]/', (string)$ks->keluhan) ? "'" . $ks->keluhan : $ks->keluhan }}</td>
             </tr>
         @endforeach
     </tbody>

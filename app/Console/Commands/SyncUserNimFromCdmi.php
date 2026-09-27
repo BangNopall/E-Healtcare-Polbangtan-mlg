@@ -20,19 +20,11 @@ class SyncUserNimFromCdmi extends Command
     {
         $isDryRun = (bool) $this->option('dry-run');
 
-        // One user is allowed at most one CDMI record (User::getCDMI() is hasOne),
-        // but the schema only enforces uniqueness on (user_id, nim) + nim alone —
-        // it does NOT stop a user_id from appearing on two rows with different
-        // nim values. Group first so that ambiguity is caught explicitly instead
-        // of silently taking "whichever row query returns first".
-        $cdmiByUser = CDMI::query()
-            ->select(['user_id', 'nim'])
-            ->get()
-            ->groupBy('user_id');
-
         $toFill = [];       // [user_id => nim] that will change users.nim
         $alreadyOk = 0;     // users.nim already matches — no-op, keeps this idempotent
         $failures = [];     // [user_id => reason]
+        $totalCdmiUsers = 0;
+        $seenUserIds = [];
 
         // Preload existing nim values once so the "already used by another user"
         // check below is an in-memory lookup, not one query per candidate.
@@ -40,53 +32,63 @@ class SyncUserNimFromCdmi extends Command
             ->whereNotNull('nim')
             ->pluck('id', 'nim');
 
-        foreach ($cdmiByUser as $userId => $rows) {
-            $distinctNims = $rows->pluck('nim')->unique();
+        CDMI::query()
+            ->select(['id', 'user_id', 'nim'])
+            ->orderBy('id')
+            ->chunkById(200, function ($rows) use (&$toFill, &$alreadyOk, &$failures, &$existingNimOwners, &$seenUserIds, &$totalCdmiUsers) {
+                foreach ($rows as $row) {
+                    $userId = $row->user_id;
+                    $nim = $row->nim;
 
-            if ($distinctNims->count() > 1) {
-                $failures[$userId] = sprintf(
-                    'User memiliki %d baris CDMI dengan NIM berbeda (%s) — ambigu, dilewati',
-                    $distinctNims->count(),
-                    $distinctNims->implode(', ')
-                );
-                continue;
-            }
+                    if (isset($seenUserIds[$userId])) {
+                        if ($seenUserIds[$userId] !== $nim) {
+                            $failures[$userId] = sprintf(
+                                'User memiliki baris CDMI dengan NIM berbeda (%s vs %s) — ambigu, dilewati',
+                                $seenUserIds[$userId],
+                                $nim
+                            );
+                            unset($toFill[$userId]);
+                        }
+                        continue;
+                    }
 
-            $nim = $distinctNims->first();
+                    $seenUserIds[$userId] = $nim;
+                    $totalCdmiUsers++;
 
-            if ($nim === null || trim((string) $nim) === '') {
-                $failures[$userId] = 'Kolom nim pada c_d_m_i_s kosong/null';
-                continue;
-            }
+                    if ($nim === null || trim((string) $nim) === '') {
+                        $failures[$userId] = 'Kolom nim pada c_d_m_i_s kosong/null';
+                        continue;
+                    }
 
-            $user = User::find($userId);
+                    $user = User::find($userId);
 
-            if (! $user) {
-                // Defensive only: c_d_m_i_s.user_id has a FK constraint with
-                // cascade delete, so this should be unreachable in practice.
-                $failures[$userId] = 'Baris CDMI menunjuk ke user_id yang tidak ada';
-                continue;
-            }
+                    if (! $user) {
+                        // Defensive only: c_d_m_i_s.user_id has a FK constraint with
+                        // cascade delete, so this should be unreachable in practice.
+                        $failures[$userId] = 'Baris CDMI menunjuk ke user_id yang tidak ada';
+                        continue;
+                    }
 
-            if ($user->nim === $nim) {
-                $alreadyOk++;
-                continue;
-            }
+                    if ($user->nim === $nim) {
+                        $alreadyOk++;
+                        continue;
+                    }
 
-            $ownerOfNim = $existingNimOwners->get($nim);
-            if ($ownerOfNim !== null && $ownerOfNim !== $userId) {
-                $failures[$userId] = sprintf(
-                    'NIM %s sudah dipakai user lain (id=%d) — kemungkinan data users.nim sudah diisi manual atau NIM CDMI keliru',
-                    $nim,
-                    $ownerOfNim
-                );
-                continue;
-            }
+                    $ownerOfNim = $existingNimOwners->get($nim);
+                    if ($ownerOfNim !== null && $ownerOfNim !== $userId) {
+                        $failures[$userId] = sprintf(
+                            'NIM %s sudah dipakai user lain (id=%d) — kemungkinan data users.nim sudah diisi manual atau NIM CDMI keliru',
+                            $nim,
+                            $ownerOfNim
+                        );
+                        continue;
+                    }
 
-            $toFill[$userId] = $nim;
-        }
+                    $toFill[$userId] = $nim;
+                }
+            });
 
-        $this->reportSummary($isDryRun, count($toFill), $alreadyOk, $failures, $cdmiByUser->count());
+        $this->reportSummary($isDryRun, count($toFill), $alreadyOk, $failures, $totalCdmiUsers);
 
         if ($isDryRun) {
             $this->line('');
@@ -97,8 +99,10 @@ class SyncUserNimFromCdmi extends Command
 
         if ($toFill !== []) {
             DB::transaction(function () use ($toFill): void {
-                foreach ($toFill as $userId => $nim) {
-                    User::whereKey($userId)->update(['nim' => $nim]);
+                foreach (array_chunk($toFill, 200, true) as $chunk) {
+                    foreach ($chunk as $userId => $nim) {
+                        User::whereKey($userId)->update(['nim' => $nim]);
+                    }
                 }
             });
         }

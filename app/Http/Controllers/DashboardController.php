@@ -14,28 +14,29 @@ class DashboardController extends Controller
 
     public function konseling()
     {
-        $user = User::all();    
-        $feedback = FeedbackBimbingan::all()->count();
-        $konsultasi = DataPsikolog::all()->count();
-        $jadwal = JadwalBimbingan::all();
-        $presensi = PresensiBimbingan::all();
+        $feedback = FeedbackBimbingan::count();
+        $konsultasi = DataPsikolog::count();
 
-        $mahasiswa = $user->where('role', 'Mahasiswa')->count();
-        $psikolog = $user->where('role', 'Psikolog')->count();
+        $mahasiswa = User::where('role', 'Mahasiswa')->count();
+        $psikolog = User::where('role', 'Psikolog')->count();
 
         // ambil jadwal bimbingan yang tanggalnya hari ini       
-        $materitoday = $jadwal->where('tanggal', now()->format('Y-m-d'))->first();
+        $today = now()->format('Y-m-d');
+        $materitoday = JadwalBimbingan::where('tanggal', $today)->first();
 
-        // ambil jadwal bimibingan 3 hari terakhir
-        $lastjadwal = $jadwal->where('tanggal', '>=', now()->subDays(5)->format('Y-m-d'))
-            ->where('tanggal', '<=', now()->format('Y-m-d'))
-            ->sortByDesc('tanggal')
-            ->take(5);
+        // ambil jadwal bimbingan 5 hari terakhir
+        $lastjadwal = JadwalBimbingan::where('tanggal', '>=', now()->subDays(5)->format('Y-m-d'))
+            ->where('tanggal', '<=', $today)
+            ->orderBy('tanggal', 'desc')
+            ->take(5)
+            ->get();
 
         // presensi senso hari ini
-        $sakit = $presensi->where('status', 'Sakit')->where('tanggal_presensi', now()->format('Y-m-d'))->count();
-        $izin = $presensi->where('status', 'Izin')->where('tanggal_presensi', now()->format('Y-m-d'))->count();
-        $alpha = $presensi->where('status', 'Alpha')->where('tanggal_presensi', now()->format('Y-m-d'))->count();
+        $sakit = PresensiBimbingan::where('status', 'Sakit')->where('tanggal_presensi', $today)->count();
+        $izin = PresensiBimbingan::where('status', 'Izin')->where('tanggal_presensi', $today)->count();
+        $alpha = PresensiBimbingan::where('status', 'Alpha')->where('tanggal_presensi', $today)->count();
+
+        $jadwal = $lastjadwal;
 
         return view('konseling.dashboard', compact('mahasiswa', 'psikolog', 'feedback', 'konsultasi', 'jadwal', 'materitoday', 'lastjadwal', 'sakit', 'izin', 'alpha'));
     }

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('senso_id')->constrained('users');
             $table->date('tanggal_presensi');
             $table->time('jam_presensi')->nullable()->default(null);
-            $table->enum('status', ['Hadir', 'Izin', 'Sakit', 'Alpha', '']);
+            $table->enum('status', ['Hadir', 'Terlambat', 'Izin', 'Sakit', 'Alpha', '']);
             $table->timestamps();
         });
     }

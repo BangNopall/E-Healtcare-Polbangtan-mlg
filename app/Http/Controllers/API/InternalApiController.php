@@ -20,41 +20,27 @@ class InternalApiController extends Controller
 
     public function userNoSenso()
     {
-        $data = User::where('senso', 0)->where('role', 'Mahasiswa')->orderBy('name', 'asc')->get()->toArray();
+        $data = User::select('id', 'name', 'nim')->where('senso', 0)->where('role', 'Mahasiswa')->orderBy('name', 'asc')->get()->toArray();
         return response()->json($data, 200);
     }
 
     public function userNoSensoNoAnakAsuh()
     {
-        // Inisialisasi array data
-        $data = [];
+        $users = User::select('id', 'name', 'nim')
+            ->where('senso', 0)
+            ->where('role', 'Mahasiswa')
+            ->whereDoesntHave('bimbinganSenso')
+            ->orderBy('name', 'asc')
+            ->get();
 
-        // Ambil semua user dengan kondisi senso = 0 dan role = Mahasiswa
-        $users = User::where('senso', 0)->where('role', 'Mahasiswa')->orderBy('name', 'asc')->get();
-
-        // Iterasi setiap user
-        foreach ($users as $user) {
-            // Cek apakah user sudah terdaftar di BimbinganSenso
-            $bimbinganSenso = BimbinganSenso::where('siswa_id', $user->id)->first();
-
-            // Jika tidak ditemukan, tambahkan user ke dalam array data
-            if (!$bimbinganSenso) {
-                $data[] = $user;
-            }
-        }
-
-        // Kembalikan response JSON dengan data user
-        return response()->json($data, 200);
+        return response()->json($users, 200);
     }
 
     public function getKonseling()
     {
-        $fb = FeedbackBimbingan::all()->count();
-        $ks = DataPsikolog::all()->count();
-        // buatkan result
         $data = [
-            'fb' => $fb,
-            'ks' => $ks,
+            'fb' => FeedbackBimbingan::count(),
+            'ks' => DataPsikolog::count(),
         ];
 
         return response()->json($data, 200);

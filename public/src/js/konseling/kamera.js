@@ -1,68 +1,144 @@
-const cameraSelect = document.getElementById("cameraSelect"),
-    qrCodeReader = new Html5Qrcode("reader");
-let beepSound = new Audio("/audio/beep.mp3"),
-    config = { fps: 10, qrbox: { width: 250, height: 250 } };
-const qrCodeSuccessCallback = (e, t) => {
-    let a = JSON.parse(e);
-    beepSound.play(),
-        qrCodeReader.stop(),
-        (document.getElementById("token").value = a.token),
-        document.getElementById("form").submit();
-};
-qrCodeReader.start({ facingMode: "user" }, config, qrCodeSuccessCallback),
+document.addEventListener("DOMContentLoaded", () => {
+    const cameraSelect = document.getElementById("cameraSelect");
+    const btnstop = document.getElementById("btnstop");
+    const tokenInput = document.getElementById("token");
+    const form = document.getElementById("form");
+    const readerElement = document.getElementById("reader");
+
+    if (!readerElement || !cameraSelect || !btnstop || !tokenInput || !form) {
+        return;
+    }
+
+    const qrCodeReader = new Html5Qrcode("reader");
+    const beepSound = new Audio("/audio/beep.mp3");
+    const config = { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 };
+
+    let isScanning = false;
+    let currentCameraId = null;
+
+    const playBeep = () => {
+        try {
+            beepSound.play().catch(() => {});
+        } catch (e) {}
+    };
+
+    const qrCodeSuccessCallback = async (decodedText) => {
+        try {
+            let parsed = JSON.parse(decodedText);
+            if (parsed && parsed.token) {
+                playBeep();
+                try {
+                    await qrCodeReader.stop();
+                    isScanning = false;
+                } catch (e) {}
+                tokenInput.value = parsed.token;
+                form.submit();
+            } else {
+                console.warn("QR code valid JSON tapi tidak memiliki atribut token:", parsed);
+            }
+        } catch (err) {
+            console.warn("Format QR bukan JSON valid:", err);
+        }
+    };
+
+    const startScanner = async (cameraConfig) => {
+        try {
+            if (isScanning) {
+                try {
+                    await qrCodeReader.stop();
+                } catch (e) {}
+                isScanning = false;
+            }
+            await qrCodeReader.start(cameraConfig, config, qrCodeSuccessCallback, () => {});
+            isScanning = true;
+            btnstop.innerText = "Stop Scan";
+            btnstop.classList.remove("bg-green-600", "hover:bg-green-700");
+            btnstop.classList.add("bg-blue-600", "hover:bg-blue-700");
+            btnstop.disabled = false;
+        } catch (err) {
+            console.error("Gagal memulai scanner kamera:", err);
+            // Fallback: jika kamera belakang gagal pada start awal, coba kamera depan
+            if (typeof cameraConfig === "object" && cameraConfig.facingMode === "environment") {
+                try {
+                    await qrCodeReader.start({ facingMode: "user" }, config, qrCodeSuccessCallback, () => {});
+                    isScanning = true;
+                    btnstop.innerText = "Stop Scan";
+                    btnstop.disabled = false;
+                } catch (fallbackErr) {
+                    console.error("Fallback kamera selfie juga gagal:", fallbackErr);
+                }
+            }
+        }
+    };
+
+    // 1. Mulai kamera pertama kali (prioritas kamera belakang)
+    startScanner({ facingMode: "environment" });
+
+    // 2. Deteksi kamera perangkat dan aktifkan dropdown
     Html5Qrcode.getCameras()
-        .then((e) => {
-            e &&
-                e.length > 1 &&
-                (e.forEach((e) => {
-                    let t = document.createElement("option");
-                    (t.value = e.id),
-                        (t.text = e.label || `Camera ${e.id}`),
-                        cameraSelect.appendChild(t);
-                }),
-                cameraSelect.addEventListener("change", function () {
-                    let e = cameraSelect.value;
-                    btnstop.classList.remove("bg-gray-500"),
-                        btnstop.classList.remove("cursor-not-allowed"),
-                        btnstop.classList.add("dark:bg-dark", "bg-blue-600"),
-                        (btnstop.disabled = !1),
-                        qrCodeReader.clear(),
-                        console.log(`Selection changed to cameraId: ${e}`),
-                        (cameraSelect.disabled = !0),
-                        qrCodeReader
-                            .start(
-                                e,
-                                { fps: 10, qrbox: { width: 350, height: 350 } },
-                                (e, t) => {
-                                    let a = JSON.parse(e);
-                                    qrCodeReader.stop(),
-                                        beepSound.play(),
-                                        (document.getElementById(
-                                            "token"
-                                        ).value = a.token),
-                                        document
-                                            .getElementById("form")
-                                            .submit(),
-                                        (cameraSelect.disabled = !1);
-                                },
-                                (e) => {
-                                    console.log(`KODE QR TIDAK ADA ( ${e} )`);
-                                }
-                            )
-                            .catch((e) => {
-                                console.log(`Error = ${e}`);
-                            });
-                }));
+        .then((cameras) => {
+            if (cameras && cameras.length > 0) {
+                cameraSelect.innerHTML = "";
+                const defaultOption = document.createElement("option");
+                defaultOption.text = cameras.length > 1 ? "Pilih Kamera" : "Kamera Terdeteksi";
+                defaultOption.value = "";
+                defaultOption.disabled = true;
+                defaultOption.selected = true;
+                cameraSelect.appendChild(defaultOption);
+
+                cameras.forEach((cam, index) => {
+                    const option = document.createElement("option");
+                    option.value = cam.id;
+                    option.text = cam.label || `Kamera ${index + 1}`;
+                    cameraSelect.appendChild(option);
+                });
+
+                cameraSelect.disabled = false;
+
+                cameraSelect.addEventListener("change", async function () {
+                    const selectedId = cameraSelect.value;
+                    if (!selectedId) return;
+
+                    currentCameraId = selectedId;
+                    cameraSelect.disabled = true;
+                    btnstop.disabled = true;
+
+                    await startScanner(selectedId);
+
+                    cameraSelect.disabled = false;
+                    btnstop.disabled = false;
+                });
+            } else {
+                cameraSelect.innerHTML = "<option selected disabled>Tidak ada kamera terdeteksi</option>";
+                cameraSelect.disabled = true;
+            }
         })
-        .catch((e) => {
-            console.error("Error getting cameras:", e);
+        .catch((err) => {
+            console.warn("Tidak dapat mengambil daftar kamera:", err);
+            cameraSelect.innerHTML = "<option selected disabled>Izin kamera dibutuhkan</option>";
+            cameraSelect.disabled = true;
         });
-const btnstop = document.getElementById("btnstop");
-btnstop.addEventListener("click", function () {
-    qrCodeReader.stop(),
-        btnstop.classList.add("bg-gray-500"),
-        btnstop.classList.add("cursor-not-allowed"),
-        btnstop.classList.remove("dark:bg-dark", "bg-blue-600"),
-        (btnstop.disabled = !0),
-        (cameraSelect.disabled = !1);
+
+    // 3. Tombol Toggle Stop / Mulai Scan
+    btnstop.addEventListener("click", async function () {
+        if (isScanning) {
+            try {
+                await qrCodeReader.stop();
+                isScanning = false;
+                btnstop.innerText = "Mulai Scan";
+                btnstop.classList.remove("bg-blue-600", "hover:bg-blue-700");
+                btnstop.classList.add("bg-green-600", "hover:bg-green-700");
+            } catch (err) {
+                console.error("Gagal menghentikan scanner:", err);
+            }
+        } else {
+            btnstop.disabled = true;
+            if (currentCameraId) {
+                await startScanner(currentCameraId);
+            } else {
+                await startScanner({ facingMode: "environment" });
+            }
+            btnstop.disabled = false;
+        }
+    });
 });

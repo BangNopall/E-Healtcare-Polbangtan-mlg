@@ -7,9 +7,10 @@
     @include('konseling.partials.modals.qr-konsultasi')
     <div class="px-2 sm:px-4 py-3 lg:py-5">
         <div class="bg-white dark:bg-darker rounded-lg shadow-lg w-full md:max-w-xl mx-auto p-3 md:p-5">
-            <div class="relative max-w-sm transition-all duration-300 filter mx-auto w-[60%] mt-5">
-                <img class="rounded-lg w-full bg-gray-500 dark:bg-dark" src="{{ asset('img/qr-test-aja.svg') }}"
-                    alt="Kode QR">
+            <div class="relative max-w-sm transition-all duration-300 mx-auto w-[60%] mt-5">
+                <div class="rounded-lg w-full aspect-square bg-gray-100 dark:bg-dark flex items-center justify-center text-gray-400">
+                    <span class="icon-[solar--qr-code-bold] w-full h-full"></span>
+                </div>
                 <div class="absolute inset-0 flex items-center justify-center">
                     <div class="absolute inset-0 bg-black/50 rounded-lg"></div>
                     <div class="relative z-10">

@@ -93,44 +93,47 @@ class ProfileController extends Controller
         return Redirect::to('/');
     }
 
+    /**
+     * Pastikan pengguna hanya dapat mengubah datanya sendiri, kecuali memiliki role Admin.
+     */
+    protected function authorizeAccess(int|string $user_id): User
+    {
+        $authUser = Auth::user();
+        if ((int) $authUser->id !== (int) $user_id && ! $authUser->hasRole('Admin')) {
+            abort(403, 'Aksi tidak diizinkan: Anda tidak memiliki akses ke profil pengguna lain.');
+        }
+
+        return User::findOrFail($user_id);
+    }
+
     public function updateAvatar(Request $request, $user_id): RedirectResponse
     {
-        // dd($request->all(), $user_id);
+        $user = $this->authorizeAccess($user_id);
+
         $request->validate([
             'avatar_url' => ['required', 'image', 'mimes:jpg,jpeg,gif,png,webp', 'max:10240'],
         ]);
 
-        $user = User::find($user_id);
-
-        if ($user) {
-            if ($user->avatar_url) {
-                Storage::delete('/public/images/' . $user->avatar_url);
-            }
-
-            $file = $request->file('avatar_url');
-            $avatarName = Str::random(24) . '.' . $request->file('avatar_url')->extension();
-            $file->storeAs('images', $avatarName, 'public');
-
-            $user->update([
-                'avatar_url' => $avatarName,
-            ]);
-
-            return redirect()->route('profile.edit')->with('status', 'avatar-updated');
-        } else {
-            // Handle the case where the user with the given ID is not found.
-            return redirect()->route('profile.edit')->with('status', 'user-not-found');
+        if ($user->avatar_url) {
+            Storage::delete('/public/images/' . $user->avatar_url);
         }
+
+        $file = $request->file('avatar_url');
+        $avatarName = Str::random(24) . '.' . $request->file('avatar_url')->extension();
+        $file->storeAs('images', $avatarName, 'public');
+
+        $user->update([
+            'avatar_url' => $avatarName,
+        ]);
+
+        return redirect()->route('profile.edit')->with('status', 'avatar-updated');
     }
 
     public function updateDMTI(Request $request, $user_id)
     {
+        $user = $this->authorizeAccess($user_id);
+
         try {
-            $user = User::find($user_id);
-
-            if (!$user) {
-                return back()->with('error', 'User not found');
-            }
-
             $request->merge([
                 'jenis_kelamin' => $request->input('jenis_kelamin') === 'Pilih' ? null : $request->input('jenis_kelamin'),
                 'golongan_darah' => $request->input('golongan_darah') === 'Pilih' ? null : $request->input('golongan_darah'),
@@ -206,25 +209,19 @@ class ProfileController extends Controller
             // Rollback transaksi jika terjadi kesalahan
             DB::rollback();
 
-            // Tangani kesalahan dengan lebih baik
             if ($th instanceof ValidationException) {
-                return back()->withErrors($th->errors())->withInput()->with('error', 'Gagal Update Data Profile: ' . $th->getMessage());
+                return back()->withErrors($th->errors())->withInput()->with('error', 'Gagal memperbarui data DMTI. Silakan periksa isian data Anda.');
             } else {
-                // Logging kesalahan ke file log atau sistem monitoring
                 Log::error('Gagal Update Data Profile: ' . $th->getMessage());
-                return back()->with('error', 'Gagal Update Data Profile: ' . $th->getMessage());
+                return back()->with('error', 'Gagal memperbarui data DMTI. Silakan coba beberapa saat lagi.');
             }
         }
     }
     public function updateCDMI(Request $request, $user_id)
     {
+        $user = $this->authorizeAccess($user_id);
+
         try {
-            $user = User::find($user_id);
-
-            if (!$user) {
-                return back()->with('error', 'User not found');
-            }
-
             // Modifikasi nilai input langsung pada request
             $request->merge([
                 'prodi_id' => $request->input('prodi_id') === 'Pilih' ? null : $request->input('prodi_id'),
@@ -280,75 +277,76 @@ class ProfileController extends Controller
 
             DB::commit();
 
-            // Log::info('Nilai cdmi: ' . $user->cdmi);
-            // Log::info('Nilai cdmi_complete: ' . $user->cdmi_complete);
-
-
             return back()->with('success', 'Data berhasil disimpan');
         } catch (\Throwable $th) {
             // Rollback transaksi jika terjadi kesalahan
             DB::rollback();
 
-            // Tangani kesalahan dengan lebih baik
             if ($th instanceof ValidationException) {
-                return back()->withErrors($th->errors())->withInput()->with('error', 'Gagal Update Data Profile: ' . $th->getMessage());
+                return back()->withErrors($th->errors())->withInput()->with('error', 'Gagal memperbarui data CDMI. Silakan periksa isian data Anda.');
             } else {
-                // Logging kesalahan ke file log atau sistem monitoring
                 Log::error('Gagal Update Data Profile: ' . $th->getMessage());
-                return back()->with('error', 'Gagal Update Data Profile: ' . $th->getMessage());
+                return back()->with('error', 'Gagal memperbarui data CDMI. Silakan coba beberapa saat lagi.');
             }
         }
     }
 
     public function storeRPD(Request $request, $user_id): RedirectResponse
     {
+        $user = $this->authorizeAccess($user_id);
+
+        $request->validate([
+            'file_RPD' => ['required', 'file', 'mimes:pdf', 'max:10000'], // max 10MB
+        ]);
+
         try {
-            $request->validate([
-                'file_RPD' => ['required', 'file', 'mimes:pdf', 'max:10000'], // max 10MB
+            $fileCount = $user->RPD()->count();
+            $safeName = Str::slug($user->name, '_');
+            $fileName = 'RPD_' . $safeName . '_' . ($fileCount + 1) . '_' . Str::random(8) . '.' . $request->file('file_RPD')->extension();
+
+            $file = $request->file('file_RPD');
+            $file->storeAs('rpd_private', $fileName, 'local');
+
+            DB::beginTransaction();
+
+            $user->RPD()->create([
+                'file_name' => $fileName,
             ]);
+            DB::commit();
 
-            // Temukan user berdasarkan user_id
-            $user = User::find($user_id);
-
-            if ($user) {
-                // Hitung jumlah RPD yang sudah ada untuk user ini
-                $fileCount = $user->RPD()->count();
-
-                // Dapatkan nama user dengan spasi diganti dengan _
-                $userName = str_replace(' ', '_', $user->name);
-
-                // Buat nama file
-                $fileName = 'RPD_' . $userName . '_' . ($fileCount + 1) . '.' . $request->file('file_RPD')->extension();
-
-                // Simpan file baru
-                $file = $request->file('file_RPD');
-                $file->storeAs('RPD', $fileName, 'public');
-
-                DB::beginTransaction();
-
-                // Tambahkan RPD baru ke user
-                $user->RPD()->create([
-                    'file_name' => $fileName,
-                ]);
-                DB::commit();
-
-                return back()->with('success', 'Data berhasil disimpan');
-            } else {
-                // Handle the case where the user with the given ID is not found.
-                return back()->with('error', 'Data tidak ditemukan');
-            }
+            return back()->with('success', 'Data berhasil disimpan');
         } catch (\Exception $th) {
             DB::rollBack();
 
             if ($th instanceof ModelNotFoundException) {
                 return back()->with('error', 'Data tidak ditemukan');
             } elseif ($th instanceof ValidationException) {
-                return back()->withErrors($th->errors())->withInput()->with('error', 'Data RPD gagal di kirim : ' . $th->getMessage());
+                return back()->withErrors($th->errors())->withInput()->with('error', 'Data RPD gagal dikirim. Silakan periksa berkas yang diunggah.');
             } else {
-                // Logging kesalahan ke file log atau sistem monitoring
                 Log::error('Data RPD gagal di kirim : ' . $th->getMessage());
-                return back()->with('error', 'Data RPD gagal di kirim');
+                return back()->with('error', 'Data RPD gagal dikirim. Silakan periksa berkas yang diunggah.');
             }
         }
+    }
+
+    public function downloadRPD($id)
+    {
+        $rpd = \App\Models\RPD::findOrFail($id);
+        $authUser = Auth::user();
+
+        if ((int) $authUser->id !== (int) $rpd->user_id && ! $authUser->hasRole('Admin') && ! $authUser->hasRole('Dokter')) {
+            abort(403, 'Aksi tidak diizinkan: Anda tidak memiliki akses untuk mengunduh rekam medis ini.');
+        }
+
+        $filePath = 'rpd_private/' . $rpd->file_name;
+        if (! Storage::disk('local')->exists($filePath)) {
+            // Fallback backward compatibility jika berkas masih di public disk
+            if (Storage::disk('public')->exists('RPD/' . $rpd->file_name)) {
+                return Storage::disk('public')->download('RPD/' . $rpd->file_name);
+            }
+            abort(404, 'Berkas rekam medis tidak ditemukan.');
+        }
+
+        return Storage::disk('local')->download($filePath);
     }
 }

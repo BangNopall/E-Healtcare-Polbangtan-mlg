@@ -5,6 +5,24 @@
     </div>
     {{-- Main Content --}}
     <div class="px-2 sm:px-4 py-3 lg:py-5">
+        @if (isset($feedbackStatus) && $feedbackStatus === 'belum_ada_senso')
+            <div class="p-4 mb-4 text-sm text-yellow-800 rounded-lg bg-yellow-50 dark:bg-dark dark:text-yellow-300 border border-yellow-200 dark:border-yellow-700" role="alert">
+                <span class="font-medium">Perhatian:</span> Anda belum dipasangkan dengan pembimbing (Senso). Silakan hubungi admin atau psikolog untuk penugasan pembimbing asuh Anda.
+            </div>
+        @elseif (isset($feedbackStatus) && $feedbackStatus === 'tidak_ada_jadwal')
+            <div class="p-4 mb-4 text-sm text-blue-800 rounded-lg bg-blue-50 dark:bg-dark dark:text-blue-300 border border-blue-200 dark:border-blue-700" role="alert">
+                <span class="font-medium">Informasi:</span> Tidak ada jadwal bimbingan untuk hari ini.
+            </div>
+        @elseif (isset($feedbackStatus) && $feedbackStatus === 'belum_presensi')
+            <div class="p-4 mb-4 text-sm text-amber-800 rounded-lg bg-amber-50 dark:bg-dark dark:text-amber-300 border border-amber-200 dark:border-amber-700" role="alert">
+                <span class="font-medium">Menunggu Presensi:</span> Pembimbing Anda ({{ optional(optional($senso)->senso)->name ?? 'Senso' }}) belum melakukan presensi untuk jadwal bimbingan hari ini. Form feedback akan otomatis aktif setelah pembimbing melakukan pemindaian QR presensi.
+            </div>
+        @elseif (isset($feedbackStatus) && $feedbackStatus === 'sudah_isi')
+            <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-dark dark:text-green-300 border border-green-200 dark:border-green-700" role="alert">
+                <span class="font-medium">Terima Kasih:</span> Anda telah mengisi feedback untuk sesi bimbingan hari ini. Ulasan Anda dapat dilihat pada tabel riwayat di bawah.
+            </div>
+        @endif
+
         <div class="overflow-x-auto shadow-md sm:rounded-lg">
             <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-darker dark:text-gray-400">
@@ -22,14 +40,28 @@
                             Tanggal
                         </th>
                         <th scope="col" class="px-4 py-3 text-center">
-
+                            Aksi
                         </th>
                     </tr>
                 </thead>
                 <tbody id="result">
                     @isset($linkFeedbackTerbaru)
-                        <x-konseling.table-form-review-feedback-user :linkTerbaru="$linkFeedbackTerbaru"
-                            :senso="$senso" />
+                        <x-konseling.table-form-feedback-user :linkTerbaru="$linkFeedbackTerbaru"
+                            :senso="$senso" :jadwal="$jadwal" />
+                    @else
+                        <tr class="bg-white border-b dark:bg-dark dark:border-gray-700">
+                            <td colspan="5" class="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
+                                @if (isset($feedbackStatus) && $feedbackStatus === 'sudah_isi')
+                                    <span class="text-green-600 dark:text-green-400 font-medium">Feedback hari ini telah selesai diisi.</span>
+                                @elseif (isset($feedbackStatus) && $feedbackStatus === 'belum_presensi')
+                                    <span>Menunggu pembimbing melakukan presensi...</span>
+                                @elseif (isset($feedbackStatus) && $feedbackStatus === 'belum_ada_senso')
+                                    <span>Belum ada pembimbing yang ditugaskan.</span>
+                                @else
+                                    <span>Tidak ada form feedback bimbingan yang aktif saat ini.</span>
+                                @endif
+                            </td>
+                        </tr>
                     @endisset
                 </tbody>
             </table>

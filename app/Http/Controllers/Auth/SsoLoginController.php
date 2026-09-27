@@ -75,8 +75,7 @@ class SsoLoginController extends Controller
 
         // 1. Handoff Admin: Login sebagai Admin dengan hak akses penuh (read-write)
         if ($role === 'admin') {
-            $admin = User::where('email', $identifier)->where('role', 'Admin')->first()
-                ?? User::where('role', 'Admin')->first();
+            $admin = User::where('email', $identifier)->where('role', 'Admin')->first();
 
             if (! $admin) {
                 Log::critical('SSO: Akun Admin tidak ditemukan di E-Klinik untuk identitas: '.$identifier);
@@ -185,11 +184,25 @@ class SsoLoginController extends Controller
     }
 
     /**
-     * Tiket kedaluwarsa jika waktu saat ini sudah melewati expires_at.
+     * Tiket kedaluwarsa jika waktu saat ini sudah melewati expires_at
+     * ATAU jika expires_at disetel melebihi batas waktu wajar (maks 5 menit ke depan).
      */
     private function isExpired(Request $request): bool
     {
-        return now()->timestamp > $request->integer('expires_at');
+        $expiresAt = $request->integer('expires_at');
+        $now = now()->timestamp;
+
+        if ($now > $expiresAt) {
+            return true;
+        }
+
+        // Bounded TTL: Tolak tiket jika masa berlaku melebihi 5 menit ke depan (mencegah perpetual token)
+        if ($expiresAt > now()->addMinutes(5)->timestamp) {
+            Log::warning('SSO: Tiket ditolak karena parameter expires_at tidak wajar (> 5 menit).');
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -227,6 +240,11 @@ class SsoLoginController extends Controller
     private function hasValidSignature(Request $request, string $identifier): bool
     {
         $secret = (string) config('sso.secret');
+
+        if (blank($secret) || strlen($secret) < 16) {
+            Log::critical('SSO: Shared secret belum dikonfigurasi atau terlalu pendek.');
+            return false;
+        }
         $role = (string) $request->input('role');
         $expiresAt = $request->integer('expires_at');
         $nonce = (string) $request->input('nonce');

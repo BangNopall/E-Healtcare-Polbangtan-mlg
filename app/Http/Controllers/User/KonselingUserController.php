@@ -6,6 +6,7 @@ use App\Models\BimbinganSenso;
 use App\Models\DataPsikolog;
 use App\Models\FeedbackBimbingan;
 use App\Models\JadwalBimbingan;
+use App\Models\PresensiBimbingan;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Routing\Controller;
@@ -31,33 +32,48 @@ class KonselingUserController extends Controller
         try {
             $auth = Auth::user();
 
-            //cari Senso Dari user yang login
+            // cari Senso Dari user yang login
             $senso = BimbinganSenso::where('siswa_id', $auth->id)->first();
 
-            // check jadwal bimbingan hari ini 
-            $jadwal = JadwalBimbingan::where('tanggal', now()->format('Y-m-d'))->first();
+            // check jadwal bimbingan hari ini dengan timezone Asia/Jakarta
+            $today = Carbon::now('Asia/Jakarta')->toDateString();
+            $jadwal = JadwalBimbingan::where('tanggal', $today)->first();
             $data['jadwal'] = $jadwal;
             $data['senso'] = $senso;
+            $data['feedbackStatus'] = null;
 
-            // jika hari ini ada jadwal bimbingan
-            if ($jadwal && $senso) {
-                // cek apakah senso nya sudah absen atau belum
-                $presensi = $jadwal->presensi()->where('senso_id', $senso->senso_id)->first();
+            if (!$senso) {
+                $data['feedbackStatus'] = 'belum_ada_senso';
+            } elseif (!$jadwal) {
+                $data['feedbackStatus'] = 'tidak_ada_jadwal';
+            } else {
+                // Cek apakah siswa sudah mengisi feedback untuk jadwal ini
+                $sudahIsi = FeedbackBimbingan::where('jadwal_id', $jadwal->id)
+                    ->where('siswa_id', $auth->id)
+                    ->exists();
 
-                if ($presensi && $presensi->status === 'Hadir') {
-                    // jika sudah absen
-                    $data['linkFeedbackTerbaru'] = route('user.konseling.form-feedback', [
-                        'id' => $senso->senso_id,
-                        'token' => $jadwal->token
-                    ]);
+                if ($sudahIsi) {
+                    $data['feedbackStatus'] = 'sudah_isi';
+                } else {
+                    // cek apakah senso nya sudah absen atau belum
+                    $presensi = $jadwal->presensi()->where('senso_id', $senso->senso_id)->first();
+
+                    if ($presensi && in_array($presensi->status, ['Hadir', 'Terlambat'])) {
+                        // jika sudah absen dan belum mengisi feedback
+                        $data['linkFeedbackTerbaru'] = route('user.konseling.form-feedback', [
+                            'id' => $senso->senso_id,
+                            'token' => $jadwal->token
+                        ]);
+                        $data['feedbackStatus'] = 'siap_isi';
+                    } else {
+                        $data['feedbackStatus'] = 'belum_presensi';
+                    }
                 }
             }
 
-            // jika tidak ada jadwal bimbingan hari ini cari feedback sebelumnya
+            // riwayat feedback sebelumnya
             $data['feedback'] = FeedbackBimbingan::where('siswa_id', $auth->id)->with('jadwal', 'senso', 'siswa')->paginate(20);
 
-
-            // dd($data);
             return view('konseling.user.link-feedback', $data);
         } catch (\Throwable $th) {
             if ($th instanceof ModelNotFoundException) {
@@ -73,8 +89,15 @@ class KonselingUserController extends Controller
     public function formfeedback($id, $token)
     {
         $senso = User::findOrFail($id);
-
         $jadwal = JadwalBimbingan::where('token', $token)->firstOrFail();
+
+        $isAssigned = BimbinganSenso::where('siswa_id', Auth::id())
+            ->where('senso_id', $senso->id)
+            ->exists();
+
+        if (! $isAssigned && ! Auth::user()->hasRole('Admin') && ! Auth::user()->hasRole('Psikolog')) {
+            abort(403, 'Aksi tidak diizinkan: Pembimbing bimbingan bukan mentor asuh Anda.');
+        }
 
         $data['senso'] = $senso;
         $data['jadwal'] = $jadwal;
@@ -84,22 +107,36 @@ class KonselingUserController extends Controller
 
     public function storefeedback(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'jadwal_id' => 'required|exists:jadwal_bimbingans,id',
+            'senso_id' => 'required|exists:users,id',
+            'siswa_id' => 'required|exists:users,id',
+            'feedback' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return back()->with('error', 'Data tidak valid');
+        }
+
+        $data = $validator->validated();
+
+        $isAssigned = BimbinganSenso::where('siswa_id', Auth::id())
+            ->where('senso_id', $data['senso_id'])
+            ->exists();
+
+        if (! $isAssigned && ! Auth::user()->hasRole('Admin') && ! Auth::user()->hasRole('Psikolog')) {
+            abort(403, 'Aksi tidak diizinkan: Pembimbing bimbingan bukan mentor asuh Anda.');
+        }
+
+        $presensi = PresensiBimbingan::where('jadwal_id', $data['jadwal_id'])
+            ->where('senso_id', $data['senso_id'])
+            ->first();
+
+        if (! $presensi || ! in_array($presensi->status, ['Hadir', 'Terlambat'])) {
+            return back()->with('error', 'Feedback belum dapat diisi karena pembimbing belum hadir pada jadwal ini.');
+        }
+
         try {
-
-            // dd($request->all());
-            $validator = Validator::make($request->all(), [
-                'jadwal_id' => 'required|exists:jadwal_bimbingans,id',
-                'senso_id' => 'required|exists:users,id',
-                'siswa_id' => 'required|exists:users,id',
-                'feedback' => 'required|string',
-            ]);
-
-            if ($validator->fails()) {
-                return back()->with('error', 'Data tidak valid');
-            }
-
-            $data = $validator->validated();
-
             DB::beginTransaction();
 
             $existingFeedback = FeedbackBimbingan::where('jadwal_id', $data['jadwal_id'])
@@ -125,7 +162,6 @@ class KonselingUserController extends Controller
             if ($th instanceof ModelNotFoundException) {
                 return back()->with('error', 'Data tidak valid');
             } else {
-                // Logging kesalahan ke file log atau sistem monitoring
                 Log::error('Data tidak valid : ' . $th->getMessage());
                 return back()->with('error', 'Data tidak valid');
             }
@@ -134,21 +170,15 @@ class KonselingUserController extends Controller
 
     public function reviewfeedback($id)
     {
-        try {
-            $feedback = FeedbackBimbingan::findOrFail($id);
+        $feedback = FeedbackBimbingan::findOrFail($id);
 
-            $data['feedback'] = $feedback;
-
-            return view('konseling.user.form.review-feedback', $data);
-        } catch (\Throwable $th) {
-            if ($th instanceof ModelNotFoundException) {
-                return back()->with('error', 'Data Feedback tidak ditemukan');
-            } else {
-                // Logging kesalahan ke file log atau sistem monitoring
-                Log::error('Data Feedback tidak ditemukan : ' . $th->getMessage());
-                return back()->with('error', 'Data Feedback tidak ditemukan');
-            }
+        if ((int) $feedback->siswa_id !== (int) Auth::id() && ! Auth::user()->hasRole('Admin') && ! Auth::user()->hasRole('Psikolog')) {
+            abort(403, 'Aksi tidak diizinkan: Anda tidak memiliki akses ke feedback bimbingan ini.');
         }
+
+        $data['feedback'] = $feedback;
+
+        return view('konseling.user.form.review-feedback', $data);
     }
 
     public function riwayatKonsultasi()
@@ -162,21 +192,15 @@ class KonselingUserController extends Controller
 
     public function detailKonsultasi($id)
     {
-        try {
-            $dataPsikolog = DataPsikolog::findOrFail($id);
+        $dataPsikolog = DataPsikolog::findOrFail($id);
 
-            $data['dataPsikolog'] = $dataPsikolog;
-
-            return view('konseling.user.detail-konsultasi', $data);
-        } catch (\Throwable $th) {
-            if ($th instanceof ModelNotFoundException) {
-                return back()->with('error', 'Data Konsultasi tidak ditemukan');
-            } else {
-                // Logging kesalahan ke file log atau sistem monitoring
-                Log::error('Data Konsultasi tidak ditemukan : ' . $th->getMessage());
-                return back()->with('error', 'Data Konsultasi tidak ditemukan');
-            }
+        if ((int) $dataPsikolog->user_id !== (int) Auth::id() && ! Auth::user()->hasRole('Admin') && ! Auth::user()->hasRole('Psikolog')) {
+            abort(403, 'Aksi tidak diizinkan: Anda tidak memiliki akses ke riwayat konsultasi ini.');
         }
+
+        $data['dataPsikolog'] = $dataPsikolog;
+
+        return view('konseling.user.detail-konsultasi', $data);
     }
 
     private function isValidHumanDate($date)
@@ -240,10 +264,10 @@ class KonselingUserController extends Controller
             return response()->json(['table' => $table]);
         } catch (\Throwable $th) {
             if ($th instanceof ValidationException) {
-                return back()->withErrors($th->errors())->withInput()->with('error', 'Gagal memfilter Konsultasi: ' . $th->getMessage());
+                return back()->withErrors($th->errors())->withInput()->with('error', 'Gagal memfilter data konsultasi.');
             } else {
                 Log::error('Gagal memfilter Konsultasi: ' . $th->getMessage());
-                return back()->with('error', 'Gagal memfilter Konsultasi');
+                return back()->with('error', 'Gagal memfilter data konsultasi.');
             }
         }
     }

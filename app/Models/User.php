@@ -79,14 +79,14 @@ class User extends Authenticatable
         return $now;
     }
 
-    protected static function UpdateTokenKesehatan($id)
+    public static function updateTokenKesehatan($id)
     {
         $user = User::find($id);
         $user->kesehatan_token = self::generateUniqueToken();
         $user->kesehatan_token_expired_at = self::generateExpiredToken();
         $user->save();
     }
-    protected static function UpdateTokenBimbingan($id)
+    public static function updateTokenBimbingan($id)
     {
         $user = User::find($id);
         $user->bimbingan_token = self::generateUniqueToken();
@@ -94,7 +94,7 @@ class User extends Authenticatable
         $user->save();
     }
 
-    protected static function UpdateTokenKonsultasi($id)
+    public static function updateTokenKonsultasi($id)
     {
         $user = User::find($id);
         $user->konsultasi_token = self::generateUniqueToken();
@@ -237,19 +237,9 @@ class User extends Authenticatable
         return $this->hasMany(RPD::class);
     }
 
-    public function Senso()
+    public function bimbinganSenso()
     {
-        return $this->hasOne(BimbinganSenso::class);
-    }
-
-    public function Feedback()
-    {
-        return $this->hasMany(FeedbackBimbingan::class);
-    }
-
-    public function BimbinganSenso()
-    {
-        return $this->hasMany(BimbinganSenso::class);
+        return $this->hasOne(BimbinganSenso::class, 'siswa_id');
     }
 
     public function PresensiBimbingan()

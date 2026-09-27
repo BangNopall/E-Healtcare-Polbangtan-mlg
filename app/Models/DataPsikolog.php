@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class DataPsikolog extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'user_id',
@@ -19,6 +20,7 @@ class DataPsikolog extends Model
         'intervensi',
         'saran',
         'rencana_tindak_lanjut',
+        'deleted_by',
     ];
 
     public function user()

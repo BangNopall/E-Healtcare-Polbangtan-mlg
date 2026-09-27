@@ -11,8 +11,10 @@
                 <li class="ms-6">
                     <div class="flex flex-col lg:flex-row gap-3 lg:gap-5">
                         <div class="flex flex-col justify-center items-start lg:items-center w-[140px]">
-                            <i
-                                class="ri-hospital-line absolute flex items-center text-gray-900 dark:text-white justify-center w-8 h-8 bg-gray-100 dark:bg-dark rounded-full -start-4 ring-4 ring-white dark:ring-darker"></i>
+                            <span
+                                class="absolute flex items-center text-gray-900 dark:text-white justify-center w-8 h-8 bg-gray-100 dark:bg-dark rounded-full -start-4 ring-4 ring-white dark:ring-darker">
+                                <span class="icon-[solar--hospital-bold] text-base"></span>
+                            </span>
                             <div
                                 class="font-medium text-sm text-left whitespace-nowrap lg:whitespace-normal lg:text-center text-gray-900 dark:text-gray-100">
                                 Surat Rujukan
