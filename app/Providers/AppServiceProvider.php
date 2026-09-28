@@ -26,6 +26,11 @@ class AppServiceProvider extends ServiceProvider
         date_default_timezone_set('Asia/Jakarta');
         // Model::preventLazyLoading(!$this->app->isProduction());
         Model::preventLazyLoading(true);
+
+        // Paksa HTTPS untuk seluruh URL dan aset Vite saat diakses melalui SSL / production
+        if ($this->app->environment('production') || str_starts_with((string) config('app.url'), 'https://')) {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
         // Model::handleLazyLoadingViolationUsing(function ($model, $relation) {
         //     $class = get_class($model);
 
